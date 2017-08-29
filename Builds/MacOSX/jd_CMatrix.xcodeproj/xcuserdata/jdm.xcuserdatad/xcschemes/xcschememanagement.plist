@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>SchemeUserState</key>
+	<dict>
+		<key>jd_CMatrix (AU).xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
+		<key>jd_CMatrix (All).xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>0</integer>
+		</dict>
+		<key>jd_CMatrix (Shared Code).xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
+		<key>jd_CMatrix (VST).xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>2153AD6CA12B6BCDC8637A22</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>25E4AB8348838B537FEEE3C3</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>465518F52438E237E1FB8370</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>856BE685AB6652469A11A24C</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+	</dict>
+</dict>
+</plist>
