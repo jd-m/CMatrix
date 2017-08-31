@@ -14,11 +14,22 @@
 
 //==============================================================================
 Jd_cmatrixAudioProcessorEditor::Jd_cmatrixAudioProcessorEditor (Jd_cmatrixAudioProcessor& p)
-    : AudioProcessorEditor (&p), processor (p)
+: AudioProcessorEditor (&p), processor (p)
 {
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
+    
     setSize (400, 300);
+
+    
+//    processor.convolver.loadIRToConvolver();
+//    processor.convolver.loadIRFromFile(File("~/Music/sc_sounds/beat/jam/jam_chord.wav"), 0);
+    
+    startTimerHz(20);
+    addAndMakeVisible(dbg);
+    
+    
+    File f = File("~/Music/sc_sounds/beat/piano/piano_01.wav");
+    processor.convolver.loadIRFromFile(f, 0);
+//    processor.convolver.loadIRToConvolver();
 }
 
 Jd_cmatrixAudioProcessorEditor::~Jd_cmatrixAudioProcessorEditor()
@@ -29,14 +40,19 @@ Jd_cmatrixAudioProcessorEditor::~Jd_cmatrixAudioProcessorEditor()
 void Jd_cmatrixAudioProcessorEditor::paint (Graphics& g)
 {
     g.fillAll (Colours::white);
-
-    g.setColour (Colours::black);
-    g.setFont (15.0f);
-    g.drawFittedText ("Hello World!", getLocalBounds(), Justification::centred, 1);
 }
 
 void Jd_cmatrixAudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
+    auto r = getLocalBounds();
+    dbg.setBounds(r);
+}
+
+void Jd_cmatrixAudioProcessorEditor::timerCallback()
+{
+    String s = String(
+    
+    );
+    
+    dbg.setText(s);
 }

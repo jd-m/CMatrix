@@ -12,11 +12,15 @@
 #define PLUGINPROCESSOR_H_INCLUDED
 
 #include "../JuceLibraryCode/JuceHeader.h"
-
+#include "Convolver.hpp"
+#include "jdHeader.h"
+#include "Settings.h"
+#include "essentia_analysis.hpp"
 
 //==============================================================================
 /**
 */
+
 class Jd_cmatrixAudioProcessor  : public AudioProcessor
 {
 public:
@@ -55,7 +59,22 @@ public:
     //==============================================================================
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
+    
+    std::vector<float> mixedBuf;
 
+    //PROCESSOR
+    SimpleConvolver convolver;
+    AnalysisChain chain;
+    
+    //Analysers
+    FFTPitchAnalyser pitchAnalyser;
+    
+    //FOR-GUI
+    
+    //DEV
+    float dbg_meter = 0.f;
+    jd::Impulse<float> imp;
+    
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Jd_cmatrixAudioProcessor)

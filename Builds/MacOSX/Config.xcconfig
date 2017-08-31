@@ -1,0 +1,14 @@
+//
+//  Config.xcconfig
+//  jd_CMatrix
+//
+//  Created by Jaiden Muschett on 30/08/2017.
+//
+//
+
+HEADER_SEARCH_PATHS = /usr/local/Cellar/essentia/2.1_beta3/include
+
+LIBRARY_SEARCH_PATHS = /usr/local/Cellar/essentia/2.1_beta3/lib
+
+//OTHER_LDFLAGS = -lessentia
+

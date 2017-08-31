@@ -87,8 +87,17 @@ void Jd_cmatrixAudioProcessor::changeProgramName (int index, const String& newNa
 //==============================================================================
 void Jd_cmatrixAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    //Processors
+    convolver.prepareToPlay(sampleRate, samplesPerBlock);
+    
+    //Analysis
+    pitchAnalyser.init(sampleRate, samplesPerBlock);
+    
+    mixedBuf.resize(samplesPerBlock);
+    
+    //Testing
+    imp.init(sampleRate);
+    imp.setFrequency(1.);
 }
 
 void Jd_cmatrixAudioProcessor::releaseResources()
@@ -123,26 +132,37 @@ bool Jd_cmatrixAudioProcessor::isBusesLayoutSupported (const BusesLayout& layout
 
 void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
-    const int totalNumInputChannels  = getTotalNumInputChannels();
-    const int totalNumOutputChannels = getTotalNumOutputChannels();
+    const int numInputChannels  = getTotalNumInputChannels();
+    const int numOutputChannels = getTotalNumOutputChannels();
+    const int numSamples = buffer.getNumSamples();
+    
+    auto inputs = buffer.getArrayOfWritePointers();
+    auto outputs = buffer.getArrayOfWritePointers();
 
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
-    for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
+    for (int i = numInputChannels; i < numOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        float* channelData = buffer.getWritePointer (channel);
-
-        // ..do something to the data...
+//    for (int i = 0; i < numSamples; i++) {
+//        float sample = 0.f;
+//        for (int chan = 0; chan < numInputChannels; chan++)
+//            sample += inputs[chan][i];
+    
+//        mixedBuf[i] = sample / (float)numInputChannels;
+//    }
+    
+//   imp.processBlock(mixedBuf.data(), numSamples);
+    
+    convolver.processBlock(mixedBuf.data(), numSamples);
+    
+    
+    
+    for (int chan = 0; chan < numOutputChannels; chan++) {
+        for (int i = 0; i < numSamples; i++) {
+            dbg_meter = convolver.bufferData()[i];//dbg
+            outputs[chan][i] = convolver.bufferData()[i];
+        }
     }
+    
 }
 
 //==============================================================================

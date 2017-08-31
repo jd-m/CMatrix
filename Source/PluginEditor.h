@@ -18,7 +18,8 @@
 //==============================================================================
 /**
 */
-class Jd_cmatrixAudioProcessorEditor  : public AudioProcessorEditor
+class Jd_cmatrixAudioProcessorEditor  : public AudioProcessorEditor,
+public Timer
 {
 public:
     Jd_cmatrixAudioProcessorEditor (Jd_cmatrixAudioProcessor&);
@@ -27,11 +28,14 @@ public:
     //==============================================================================
     void paint (Graphics&) override;
     void resized() override;
+    void timerCallback() override;
 
 private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
+
     Jd_cmatrixAudioProcessor& processor;
+    
+    
+    TextEditor dbg;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Jd_cmatrixAudioProcessorEditor)
 };
