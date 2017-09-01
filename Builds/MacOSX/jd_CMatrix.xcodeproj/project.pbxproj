@@ -39,8 +39,6 @@
 		593DBDF41F56D401003E33CE /* TwoStageFFTConvolver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 595495CE1F55F637004AF529 /* TwoStageFFTConvolver.cpp */; };
 		593DBDF51F56D401003E33CE /* Utilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 595495D01F55F637004AF529 /* Utilities.cpp */; };
 		593DBDF61F56D418003E33CE /* Convolver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 595495D61F56326E004AF529 /* Convolver.cpp */; };
-		593DBE131F574BA9003E33CE /* libessentia.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 593DBE101F574935003E33CE /* libessentia.dylib */; };
-		593DBE141F574C72003E33CE /* libessentia.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 593DBE101F574935003E33CE /* libessentia.dylib */; };
 		595495951F55D38C004AF529 /* RecentFilesMenuTemplate.nib in Resources */ = {isa = PBXBuildFile; fileRef = AA72A8F3EBA3DF2FAC662D47 /* RecentFilesMenuTemplate.nib */; };
 		595495961F55D38C004AF529 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56FCA5715366D4DCFB7DF598 /* Accelerate.framework */; };
 		595495971F55D38C004AF529 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F958F053FF9AF5245622EFB2 /* AudioToolbox.framework */; };
@@ -53,6 +51,10 @@
 		5954959E1F55D38C004AF529 /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E4786EB18363CAC582271B90 /* QTKit.framework */; };
 		5954959F1F55D38C004AF529 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A15A798BE8951DB67A43C57 /* QuartzCore.framework */; };
 		595495A01F55D38C004AF529 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 247658E64F85F993FAA56D91 /* WebKit.framework */; };
+		59EC36171F58E83000E7A438 /* libessentia.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 59EC36161F58E83000E7A438 /* libessentia.a */; };
+		59EC36181F58E83B00E7A438 /* libessentia.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 59EC36161F58E83000E7A438 /* libessentia.a */; };
+		59EC361A1F58E9AF00E7A438 /* libfftw3f.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 59EC36191F58E9AF00E7A438 /* libfftw3f.a */; };
+		59EC361B1F58E9B600E7A438 /* libfftw3f.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 59EC36191F58E9AF00E7A438 /* libfftw3f.a */; };
 		63B8018C3B393F437444B8BE /* juce_events.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7E98928D149A1067391BCAA9 /* juce_events.mm */; };
 		6484853EB144E91237BFD219 /* juce_gui_basics.mm in Sources */ = {isa = PBXBuildFile; fileRef = F7AB18B47DD8E9E47A226E8A /* juce_gui_basics.mm */; };
 		67C3059C01F89EE22FF06CB4 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A15A798BE8951DB67A43C57 /* QuartzCore.framework */; };
@@ -564,6 +566,8 @@
 		5913BCB11F574DEE0070CDBD /* JDEnvelopeGUI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = JDEnvelopeGUI.cpp; path = ../../Source/GUI/JDEnvelopeGUI.cpp; sourceTree = "<group>"; };
 		5913BCB71F5755BB0070CDBD /* AnalysisEditor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AnalysisEditor.cpp; sourceTree = "<group>"; };
 		5913BCB81F5755BB0070CDBD /* AnalysisEditor.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = AnalysisEditor.hpp; sourceTree = "<group>"; };
+		5913BCCE1F5839800070CDBD /* AnalysisChain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AnalysisChain.cpp; path = ../../Source/AnalysisChain.cpp; sourceTree = "<group>"; };
+		5913BCCF1F5839800070CDBD /* AnalysisChain.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = AnalysisChain.hpp; path = ../../Source/AnalysisChain.hpp; sourceTree = "<group>"; };
 		593DBE0D1F57413F003E33CE /* essentia_analysis.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = essentia_analysis.hpp; path = ../../Source/essentia_analysis.hpp; sourceTree = "<group>"; };
 		593DBE0E1F57416C003E33CE /* Settings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Settings.h; path = ../../Source/Settings.h; sourceTree = "<group>"; };
 		593DBE0F1F5741F0003E33CE /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
@@ -600,6 +604,8 @@
 		599C767578908DB3DF2C73A2 /* juce_Primes.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_Primes.cpp; path = ../../../../../JUCE/modules/juce_cryptography/encryption/juce_Primes.cpp; sourceTree = SOURCE_ROOT; };
 		59B80F7543BBC66353C9F493 /* juce_ThreadLocalValue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_ThreadLocalValue.h; path = ../../../../../JUCE/modules/juce_core/threads/juce_ThreadLocalValue.h; sourceTree = SOURCE_ROOT; };
 		59DC7EB668800F1097147262 /* juce_AudioUnitPluginFormat.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_AudioUnitPluginFormat.mm; path = ../../../../../JUCE/modules/juce_audio_processors/format_types/juce_AudioUnitPluginFormat.mm; sourceTree = SOURCE_ROOT; };
+		59EC36161F58E83000E7A438 /* libessentia.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libessentia.a; path = ../../../../../libs/essentia/lib/osx/libessentia.a; sourceTree = "<group>"; };
+		59EC36191F58E9AF00E7A438 /* libfftw3f.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfftw3f.a; path = ../../../../../libs/fftw3f/lib/libfftw3f.a; sourceTree = "<group>"; };
 		59F57A9A3EA13E5D20AAAA15 /* juce_EdgeTable.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_EdgeTable.cpp; path = ../../../../../JUCE/modules/juce_graphics/geometry/juce_EdgeTable.cpp; sourceTree = SOURCE_ROOT; };
 		59F7A99E74DC8AB3579726B2 /* juce_audio_devices.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_audio_devices.cpp; path = ../../../../../JUCE/modules/juce_audio_devices/juce_audio_devices.cpp; sourceTree = SOURCE_ROOT; };
 		5A54D1450CEEBF81DA42D541 /* juce_MPEInstrument.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_MPEInstrument.cpp; path = ../../../../../JUCE/modules/juce_audio_basics/mpe/juce_MPEInstrument.cpp; sourceTree = SOURCE_ROOT; };
@@ -1430,7 +1436,8 @@
 				5954959E1F55D38C004AF529 /* QTKit.framework in Frameworks */,
 				5954959F1F55D38C004AF529 /* QuartzCore.framework in Frameworks */,
 				595495A01F55D38C004AF529 /* WebKit.framework in Frameworks */,
-				593DBE141F574C72003E33CE /* libessentia.dylib in Frameworks */,
+				59EC361A1F58E9AF00E7A438 /* libfftw3f.a in Frameworks */,
+				59EC36181F58E83B00E7A438 /* libessentia.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1449,7 +1456,8 @@
 				2994D500FFF094FCF21E32AB /* QTKit.framework in Frameworks */,
 				67C3059C01F89EE22FF06CB4 /* QuartzCore.framework in Frameworks */,
 				0D613640BF085C05068E2F26 /* WebKit.framework in Frameworks */,
-				593DBE131F574BA9003E33CE /* libessentia.dylib in Frameworks */,
+				59EC361B1F58E9B600E7A438 /* libfftw3f.a in Frameworks */,
+				59EC36171F58E83000E7A438 /* libessentia.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2434,6 +2442,8 @@
 			isa = PBXGroup;
 			children = (
 				593DBE0D1F57413F003E33CE /* essentia_analysis.hpp */,
+				5913BCCE1F5839800070CDBD /* AnalysisChain.cpp */,
+				5913BCCF1F5839800070CDBD /* AnalysisChain.hpp */,
 			);
 			name = analysis;
 			sourceTree = "<group>";
@@ -3439,6 +3449,8 @@
 		D853B38CB557D8094F5E0AED /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				59EC36191F58E9AF00E7A438 /* libfftw3f.a */,
+				59EC36161F58E83000E7A438 /* libessentia.a */,
 				593DBE101F574935003E33CE /* libessentia.dylib */,
 				56FCA5715366D4DCFB7DF598 /* Accelerate.framework */,
 				F958F053FF9AF5245622EFB2 /* AudioToolbox.framework */,
@@ -4367,6 +4379,8 @@
 			baseConfigurationReference = 593DBE0F1F5741F0003E33CE /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "compiler-default";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = c99;
@@ -4445,6 +4459,8 @@
 			baseConfigurationReference = 593DBE0F1F5741F0003E33CE /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "compiler-default";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;

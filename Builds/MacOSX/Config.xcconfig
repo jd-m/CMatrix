@@ -6,9 +6,11 @@
 //
 //
 
-HEADER_SEARCH_PATHS = /usr/local/Cellar/essentia/2.1_beta3/include
 
-LIBRARY_SEARCH_PATHS = /usr/local/Cellar/essentia/2.1_beta3/lib
 
-//OTHER_LDFLAGS = -lessentia
+HEADER_SEARCH_PATHS = "~/libs/fftw3f/include" "~/libs/essentia/include"
+
+LIBRARY_SEARCH_PATHS = "~/libs/fftw3f/lib/" "~/libs/essentia/lib/"
+
+//OTHER_LDFLAGS = -L"~/libs/essentia/lib/osx" -lessentia
 

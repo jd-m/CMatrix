@@ -91,19 +91,32 @@ void Jd_cmatrixAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     convolver.prepareToPlay(sampleRate, samplesPerBlock);
     
     //Analysis
+    windowedFrame.resize(samplesPerBlock);
+    spectrumFrame.resize(samplesPerBlock);
+    
+    frameCutter.init(sampleRate, samplesPerBlock);
+    spectrumAnalyser.init(sampleRate, samplesPerBlock);
     pitchAnalyser.init(sampleRate, samplesPerBlock);
+    pitchSalienceAnalyser.init(sampleRate, samplesPerBlock);
+    spectralPeakAnalyser.init(sampleRate, samplesPerBlock);
+    harmonicPeakAnalyser.init(sampleRate, samplesPerBlock);
+    inharmonicityAnalyser.init(sampleRate, samplesPerBlock);
+    dcRemover.init(sampleRate, samplesPerBlock);
     
     mixedBuf.resize(samplesPerBlock);
     
     //Testing
     imp.init(sampleRate);
     imp.setFrequency(1.);
+    
+    sin.init(sampleRate);
+    sin.setFrequency(440.f);
+    sin.setAmplitude(0.1);
 }
 
 void Jd_cmatrixAudioProcessor::releaseResources()
 {
-    // When playback stops, you can use this as an opportunity to free up any
-    // spare memory, etc.
+
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -142,24 +155,44 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
     for (int i = numInputChannels; i < numOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-//    for (int i = 0; i < numSamples; i++) {
-//        float sample = 0.f;
-//        for (int chan = 0; chan < numInputChannels; chan++)
-//            sample += inputs[chan][i];
+    for (int i = 0; i < numSamples; i++) {
+        float sample = 0.f;
+        for (int chan = 0; chan < numInputChannels; chan++)
+            sample += inputs[chan][i];
     
-//        mixedBuf[i] = sample / (float)numInputChannels;
-//    }
+        mixedBuf[i] = sample / (float)numInputChannels;
+    }
     
-//   imp.processBlock(mixedBuf.data(), numSamples);
+//    imp.processBlock(mixedBuf.data(), numSamples);
+//    sin.processBlock(&mixedBuf[0], numSamples);
+//    convolver.processBlock(mixedBuf.data(), numSamples);
     
-    convolver.processBlock(mixedBuf.data(), numSamples);
+    memcpy(&windowedFrame[0], &mixedBuf[0], numSamples * sizeof(float));
+    frameCutter.analyseBlock();
+    spectrumAnalyser.analyseBlock();
+    pitchAnalyser.analyseBlock();
+    //amp->db
+    for(auto &f: spectrumFrame)
+        f = ::fabsf(jd::ampdb(f)/jd::dbamp(1e-10));
     
+    dcRemover.analyseBlock();
+    spectralPeakAnalyser.analyseBlock();
+    harmonicPeakAnalyser.analyseBlock();
+    inharmonicityAnalyser.analyseBlock();
     
+    pitchSalienceAnalyser.analyseBlock();
     
+//    dbg_meter = pitchAnalyser.getPitch();//dbg
+//    dbg_meter = pitchSalienceAnalyser.getPitchSalience();
+//    std::cout << inharmonicityAnalyser.getInharmonicity() << std::endl;
+//    dbg_meter = inharmonicityAnalyser.getInharmonicity();
+//    auto& f = harmonicPeakAnalyser.getHarmonicMagnitudes();
+//    dbg_meter = (f.size() > 0) ? f.size() : f.size();
     for (int chan = 0; chan < numOutputChannels; chan++) {
         for (int i = 0; i < numSamples; i++) {
-            dbg_meter = convolver.bufferData()[i];//dbg
-            outputs[chan][i] = convolver.bufferData()[i];
+//            dbg_meter = convolver.bufferData()[i];//dbg
+//            outputs[chan][i] = convolver.bufferData()[i];
+            outputs[chan][i] = 0.;
         }
     }
     

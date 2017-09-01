@@ -16,6 +16,10 @@
 #include "jdHeader.h"
 #include "Settings.h"
 #include "essentia_analysis.hpp"
+#include "AnalysisChain.hpp"
+#include <random>
+#include <algorithm>
+#include <list>
 
 //==============================================================================
 /**
@@ -64,16 +68,31 @@ public:
 
     //PROCESSOR
     SimpleConvolver convolver;
-    AnalysisChain chain;
+//    AnalysisChain chain;
     
-    //Analysers
-    FFTPitchAnalyser pitchAnalyser;
+    //AnalysisChain
+    std::vector<float> windowedFrame;
+    std::vector<float> spectrumFrame;
+    
+    FrameCutter frameCutter { windowedFrame };
+    SpectrumAnalyser spectrumAnalyser { frameCutter, spectrumFrame};
+    
+    DCRemover dcRemover { spectrumFrame };
+    FFTPitchAnalyser pitchAnalyser { spectrumAnalyser };
+    PitchSalienceAnalyser pitchSalienceAnalyser { spectrumAnalyser };
+    SpectralPeakAnalysis spectralPeakAnalyser { spectrumAnalyser };
+    HarmonicPeakAnalyser harmonicPeakAnalyser { pitchAnalyser, spectralPeakAnalyser };
+    
+    InharmonicityAnalyser inharmonicityAnalyser { harmonicPeakAnalyser };
+    
+    
     
     //FOR-GUI
     
     //DEV
-    float dbg_meter = 0.f;
+    volatile double dbg_meter = 0.;
     jd::Impulse<float> imp;
+    jd::SinOsc<float> sin;
     
 private:
     //==============================================================================

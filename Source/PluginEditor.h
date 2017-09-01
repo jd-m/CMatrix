@@ -13,13 +13,14 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PluginProcessor.h"
-
+#include <memory.h>
 
 //==============================================================================
 /**
 */
 class Jd_cmatrixAudioProcessorEditor  : public AudioProcessorEditor,
-public Timer
+public Timer,
+public Slider::Listener
 {
 public:
     Jd_cmatrixAudioProcessorEditor (Jd_cmatrixAudioProcessor&);
@@ -29,6 +30,7 @@ public:
     void paint (Graphics&) override;
     void resized() override;
     void timerCallback() override;
+    void sliderValueChanged(Slider* slider) override;
 
 private:
 
@@ -36,6 +38,8 @@ private:
     
     
     TextEditor dbg;
+    
+    OwnedArray<Slider> sliders;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Jd_cmatrixAudioProcessorEditor)
 };
