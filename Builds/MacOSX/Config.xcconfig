@@ -1,16 +1,7 @@
-//
-//  Config.xcconfig
-//  jd_CMatrix
-//
-//  Created by Jaiden Muschett on 30/08/2017.
-//
-//
 
+HEADER_SEARCH_PATHS = ($inherited) "$(HOME)/libs/fftw3f/include" "$(HOME)/libs/essentia_/include"
 
+LIBRARY_SEARCH_PATHS = ($inherited) "$(HOME)/libs/essentia_/lib" "$(HOME)/libs/fftw3f/lib"
 
-HEADER_SEARCH_PATHS = "~/libs/fftw3f/include" "~/libs/essentia/include"
-
-LIBRARY_SEARCH_PATHS = "~/libs/fftw3f/lib/" "~/libs/essentia/lib/"
-
-//OTHER_LDFLAGS = -L"~/libs/essentia/lib/osx" -lessentia
+OTHER_LDFLAGS = ($inherited) "$(HOME)/libs/fftw3f/lib/libfftw3f.a" "$(HOME)/libs/essentia_/lib/libessentia.a" 
 

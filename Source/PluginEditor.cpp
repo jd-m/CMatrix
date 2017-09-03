@@ -18,7 +18,7 @@ Jd_cmatrixAudioProcessorEditor::Jd_cmatrixAudioProcessorEditor (Jd_cmatrixAudioP
 {
     
     
-
+    essentia::init();
     
 //    processor.convolver.loadIRToConvolver();
 //    processor.convolver.loadIRFromFile(File("~/Music/sc_sounds/beat/jam/jam_chord.wav"), 0);
@@ -43,9 +43,7 @@ Jd_cmatrixAudioProcessorEditor::Jd_cmatrixAudioProcessorEditor (Jd_cmatrixAudioP
         addAndMakeVisible(s);
         s->setRange(0.,1.);
     }
-    
-
-    
+//
     setSize (800, 400);
 }
 
@@ -75,7 +73,7 @@ void Jd_cmatrixAudioProcessorEditor::resized()
 
 void Jd_cmatrixAudioProcessorEditor::sliderValueChanged(juce::Slider *slider)
 {
-    if (slider == sliders)
+//    if (slider == sliders)
     
 }
 
@@ -84,10 +82,11 @@ void Jd_cmatrixAudioProcessorEditor::timerCallback()
     String s = String(
     );
     
-    int count  = 0;
-    for (auto mag : processor.harmonicPeakAnalyser.harmonicMagnitudes())
+    auto& chain = processor.analysisChain;
+    s += String(chain.inharmonicity.output<0>());
+    int count  = 1;
 //    for (auto mag : processor.spectralPeakAnalyser.magnitudes())
-        s += String(mag) + (((++count % 10) == 0) ? "\n" : ", ");
+//        s += String(mag) + (((++count % 10) == 0) ? "\n" : ", ");
 //    s+= String(processor.pitchSalienceAnalyser.pitchSalience());
 //    s+= "\ninharm" +String(processor.inharmonicityAnalyser.inharmonicity());
     s+="\n";

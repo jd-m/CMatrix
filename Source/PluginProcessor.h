@@ -15,8 +15,7 @@
 #include "Convolver.hpp"
 #include "jdHeader.h"
 #include "Settings.h"
-#include "essentia_analysis.hpp"
-#include "AnalysisChain.hpp"
+#include "essentia_analysis/essentia_analyser_chain.h"
 #include <random>
 #include <algorithm>
 #include <list>
@@ -68,25 +67,9 @@ public:
 
     //PROCESSOR
     SimpleConvolver convolver;
-//    AnalysisChain chain;
-    
-    //AnalysisChain
-    std::vector<float> windowedFrame;
-    std::vector<float> spectrumFrame;
-    
-    FrameCutter frameCutter { windowedFrame };
-    SpectrumAnalyser spectrumAnalyser { frameCutter, spectrumFrame};
-    
-    DCRemover dcRemover { spectrumFrame };
-    FFTPitchAnalyser pitchAnalyser { spectrumAnalyser };
-    PitchSalienceAnalyser pitchSalienceAnalyser { spectrumAnalyser };
-    SpectralPeakAnalysis spectralPeakAnalyser { spectrumAnalyser };
-    HarmonicPeakAnalyser harmonicPeakAnalyser { pitchAnalyser, spectralPeakAnalyser };
-    
-    InharmonicityAnalyser inharmonicityAnalyser { harmonicPeakAnalyser };
     
     
-    
+    AnalyserChain analysisChain;
     //FOR-GUI
     
     //DEV

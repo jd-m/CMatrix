@@ -91,17 +91,7 @@ void Jd_cmatrixAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     convolver.prepareToPlay(sampleRate, samplesPerBlock);
     
     //Analysis
-    windowedFrame.resize(samplesPerBlock);
-    spectrumFrame.resize(samplesPerBlock);
-    
-    frameCutter.init(sampleRate, samplesPerBlock);
-    spectrumAnalyser.init(sampleRate, samplesPerBlock);
-    pitchAnalyser.init(sampleRate, samplesPerBlock);
-    pitchSalienceAnalyser.init(sampleRate, samplesPerBlock);
-    spectralPeakAnalyser.init(sampleRate, samplesPerBlock);
-    harmonicPeakAnalyser.init(sampleRate, samplesPerBlock);
-    inharmonicityAnalyser.init(sampleRate, samplesPerBlock);
-    dcRemover.init(sampleRate, samplesPerBlock);
+    analysisChain.createAlgorithms(sampleRate, samplesPerBlock);
     
     mixedBuf.resize(samplesPerBlock);
     
@@ -167,20 +157,9 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
 //    sin.processBlock(&mixedBuf[0], numSamples);
 //    convolver.processBlock(mixedBuf.data(), numSamples);
     
-    memcpy(&windowedFrame[0], &mixedBuf[0], numSamples * sizeof(float));
-    frameCutter.analyseBlock();
-    spectrumAnalyser.analyseBlock();
-    pitchAnalyser.analyseBlock();
-    //amp->db
-    for(auto &f: spectrumFrame)
-        f = ::fabsf(jd::ampdb(f)/jd::dbamp(1e-10));
+    memcpy(&analysisChain.inputSignal[0], &mixedBuf[0], numSamples * sizeof(float));
     
-    dcRemover.analyseBlock();
-    spectralPeakAnalyser.analyseBlock();
-    harmonicPeakAnalyser.analyseBlock();
-    inharmonicityAnalyser.analyseBlock();
     
-    pitchSalienceAnalyser.analyseBlock();
     
 //    dbg_meter = pitchAnalyser.getPitch();//dbg
 //    dbg_meter = pitchSalienceAnalyser.getPitchSalience();
