@@ -2,10 +2,24 @@
 #define essentia_analyser_chain_h
 
 #include "essentia_analysers.h"
- struct AnalyserChain {
+#include "essentia_analysis_gates.h"
+
+
+
+struct AnalyserChain {
+     
+    AnalyserChain()
+     {
+         detectors.resize(NUM_DETECTORS);
+         for (int i = 0; i < NUM_DETECTORS; i++)
+         {
+             detectors[i].setRMSWindowSizeMS(1000);
+         }
+     }
      
      void createAlgorithms(float sampleRate, int samplesPerBlock)
      {
+         using AlgorithmFactory = essentia::standard::AlgorithmFactory;
          
          if (!essentia::isInitialized()) essentia::init();
          
@@ -68,46 +82,84 @@
          pitchSalience.setInputs("spectrum", spectrum.output<Spectrum::SPECTRUM>());
          
          
-         factory.shutdown();
+         //Detector
+         detector(LEVEL).init(sampleRate, samplesPerBlock);
+         for (auto i : {
+             PITCH,
+             PITCH_CONFIDENCE,
+             PITCH_SALIENCE,
+             INHARMONICITY })
+             {
+                 detector(i).init(sampleRate / static_cast<float>(samplesPerBlock),
+                        samplesPerBlock);
+             }
+         
+         detectorSignal.resize(samplesPerBlock);
      }
      
-    void computeBlock () {
-         
-        dcRemoval.compute();
-        windowing.compute();
-        spectrum.compute();
-        spectralPeaks.compute();
-        harmonicPeaks.compute();
-        inharmonicity.compute();
-        pitchYinFFT.compute();
-        pitchSalience.compute();
+     
+     enum Detectors {
+         LEVEL,
+         PITCH,
+         PITCH_CONFIDENCE,
+         PITCH_SALIENCE,
+         INHARMONICITY,
+         NUM_DETECTORS
      };
+    
+     bool allDetectorsWithinRange ()
+     {
+         bool previousDetectorsWithinRange { false };
+         
+         for (auto d : detectors)
+             previousDetectorsWithinRange = (previousDetectorsWithinRange and d.isWithinRange());
+         
+         return previousDetectorsWithinRange;
+     }
      
-     std::vector<float> inputSignal;
+    RangeDetector& detector(Detectors detectorIndex)
+    {
+        return detectors[detectorIndex];
+    }
+  
+    void computeBlock () {
+        
+         dcRemoval.compute();
+         windowing.compute();
+         spectrum.compute();
+         spectralPeaks.compute();
+         harmonicPeaks.compute();
+         inharmonicity.compute();
+         pitchYinFFT.compute();
+         pitchSalience.compute();
+        
+         detector(LEVEL).processBlock(&inputSignal[0], &detectorSignal[0], inputSignal.size());
+         detector(PITCH).processedSample(pitchYinFFT.output<PitchYinFFT::PITCH>(),0);
+         detector(PITCH_CONFIDENCE).processedSample(pitchYinFFT.output<PitchYinFFT::PITCH_CONFIDENCE>(),0);
+         detector(INHARMONICITY).processedSample(inharmonicity.output<Inharmonicity::INHARMONICITY>(),0);
+         detector(PITCH_SALIENCE).processedSample(pitchSalience.output<PitchSalience::PITCH_SALIENCE>(),0);
+    };
      
-     DCRemoval dcRemoval;
-     Windowing windowing;
-     Spectrum spectrum;
-     SpectralPeaks spectralPeaks;
-     HarmonicPeaks harmonicPeaks;
-     PitchYinFFT pitchYinFFT;
-     Inharmonicity inharmonicity;
-     PitchSalience pitchSalience;
-//     Dissonance dissonance;
+    std::vector<float> inputSignal;
+     
+    DCRemoval dcRemoval;
+    Windowing windowing;
+    Spectrum spectrum;
+    SpectralPeaks spectralPeaks;
+    HarmonicPeaks harmonicPeaks;
+    PitchYinFFT pitchYinFFT;
+    Inharmonicity inharmonicity;
+    PitchSalience pitchSalience;
+     
+    std::vector<RangeDetector> detectors;
+    struct RangeLimits
+    {
+        volatile F lower = 0.;
+        volatile F upper = 1.;
+    };
+    std::vector<RangeLimits> detectorLimits;
+    std::vector<float> detectorSignal;
+   
 };
-/* 
- enum AlgorithmID {
- DC_REMOVAL,
- WINDOWING,
- SPECTRUM,
- PITCH_YIN_FFT,
- PITCH_SALIENCE,
- SPECTRAL_PEAKS,
- HARMONIC_PEAKS,
- INHARMONICITY,
- DISSONANCE,
- NUM_ALGORITHMS
- };
-*/
 
 #endif /* essentia_analyser_chain_h */

@@ -28,26 +28,26 @@ public:
         g.fillAll (Colours::black);
         g.setColour (Colours::darkorange);
         
-        const float margin = 0.1f;
-        const float halfMargin = margin * 0.5f;
-        const float halfHeight = (float)getHeight() * (1.f - halfMargin);
-        
+//        const float margin = 0.1f;
+//        const float halfMargin = margin * 0.5f;
+        const float halfHeight = (float)getHeight() * 0.5f;
+        const float heightf = static_cast<float>(getHeight());
         int bp = bufferPos;
         
         Path p;
+        
         p.startNewSubPath(getWidth(), halfHeight - halfHeight * circularBuffer [(bp + bufferSize) % bufferSize]);
         
         for (int x = getWidth() - 1; x-- >= 0;) {
             const int samplesAgo = getWidth() - x;
             const float level = circularBuffer [(bp + bufferSize - samplesAgo) % bufferSize];
-                p.lineTo((float)x, halfHeight - halfHeight * level * (1.f - halfMargin));
+                p.lineTo((float)x, heightf - heightf * level);
         }
         g.strokePath(p, PathStrokeType(1));
         
         auto r = getLocalBounds().toFloat();
-        r.removeFromTop(halfMargin * (float)getHeight()).removeFromBottom(halfMargin * (float)getHeight());
-        g.drawLine({r.getTopLeft(), r.getTopRight()}, 1);
-        g.drawLine({r.getBottomLeft(), r.getBottomRight()}, 1);
+        g.drawRect(r.removeFromTop(heightf * 0.5f));
+        g.drawRect(r);
     
     }
     void timerCallback()
@@ -56,7 +56,7 @@ public:
     }
     void addSample (const float sample)
     {
-        currentInputLevel += fabsf (sample);
+        currentInputLevel += ::fabsf(sample);
         
         if (++numSamplesIn > samplesToAverage)
         {

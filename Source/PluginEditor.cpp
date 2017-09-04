@@ -24,7 +24,7 @@ Jd_cmatrixAudioProcessorEditor::Jd_cmatrixAudioProcessorEditor (Jd_cmatrixAudioP
 //    processor.convolver.loadIRFromFile(File("~/Music/sc_sounds/beat/jam/jam_chord.wav"), 0);
     
     startTimerHz(20);
-//    addAndMakeVisible(dbg);
+    addAndMakeVisible(dbg);
     
     
     File f = File("~/Music/sc_sounds/beat/piano/piano_01.wav");
@@ -32,9 +32,7 @@ Jd_cmatrixAudioProcessorEditor::Jd_cmatrixAudioProcessorEditor (Jd_cmatrixAudioP
 //    processor.convolver.loadIRToConvolver();
     
     dbg.setMultiLine(true);
-
-//    sliders.push_back(std::move(ScopedPointer<Slider>(new Slider)));
-    sliders.clear();
+    
     for (int i = 0; i < 8; i++)
     {
         auto s = new Slider( Slider::LinearVertical,
@@ -43,7 +41,8 @@ Jd_cmatrixAudioProcessorEditor::Jd_cmatrixAudioProcessorEditor (Jd_cmatrixAudioP
         addAndMakeVisible(s);
         s->setRange(0.,1.);
     }
-//
+
+    addAndMakeVisible(waveformViewer);
     setSize (800, 400);
 }
 
@@ -64,6 +63,8 @@ void Jd_cmatrixAudioProcessorEditor::resized()
     auto r = getLocalBounds();
     dbg.setBounds(r.removeFromLeft(400));
     
+    waveformViewer.setBounds(r.removeFromBottom(200).withX(0));
+    
     int sliceSize = 50;
     
     for (auto s : sliders)
@@ -79,18 +80,35 @@ void Jd_cmatrixAudioProcessorEditor::sliderValueChanged(juce::Slider *slider)
 
 void Jd_cmatrixAudioProcessorEditor::timerCallback()
 {
-    String s = String(
+    
+    String s = "is within range: " + String(
+        processor.gate.isWithinRange()
     );
     
-    auto& chain = processor.analysisChain;
-    s += String(chain.inharmonicity.output<0>());
-    int count  = 1;
-//    for (auto mag : processor.spectralPeakAnalyser.magnitudes())
-//        s += String(mag) + (((++count % 10) == 0) ? "\n" : ", ");
+//    auto& chain = processor.analysisChain;
+//    s += "\n" + String(processor.dbg_meter);
+//    "RMS: " + String(chain.detectorSignal[0]) + " is Within Range: " +
+//    String(chain.detector(chain.LEVEL).isWithinRange()) + "\n"
+//    
+//    "PITCH: " + String(chain.pitchYinFFT.output<0>()) + " is Within Range: " +
+//    String(chain.detector(chain.PITCH).isWithinRange()) + "\n"
+//    
+//    "PITCH_CONFIDENCE: " + String(chain.pitchYinFFT.output<1>()) + " is Within Range: " +
+//    String(chain.detector(chain.PITCH_CONFIDENCE).isWithinRange()) + "\n"
+//    
+//    "PITCH_SALIENCE: " + String(chain.pitchSalience.output<0>()) + " is Within Range: " +
+//    String(chain.detector(chain.PITCH_SALIENCE).isWithinRange()) + "\n"
+//    
+//    "INHARMONICITY: " + String(chain.inharmonicity.output<0>()) + " is Within Range: " +
+//    String(chain.detector(chain.INHARMONICITY).isWithinRange()) + "\n"
+//    ;
+//    int count  = 1;
+//    for (auto mag : processor.mixedBuf)
+//        s += String(mag) + (((++count % 5) == 0) ? "\n" : ", ");
 //    s+= String(processor.pitchSalienceAnalyser.pitchSalience());
 //    s+= "\ninharm" +String(processor.inharmonicityAnalyser.inharmonicity());
-    s+="\n";
+//    s+="\n";
     
-    if (count > 0)
-        dbg.setText(s);
+//    if (count > 0)
+        dbg.setText(s + "\n" + String(processor.gate.text));
 }

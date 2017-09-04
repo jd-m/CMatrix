@@ -566,6 +566,8 @@
 		5913BCB11F574DEE0070CDBD /* JDEnvelopeGUI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = JDEnvelopeGUI.cpp; path = ../../Source/GUI/JDEnvelopeGUI.cpp; sourceTree = "<group>"; };
 		5913BCB71F5755BB0070CDBD /* AnalysisEditor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AnalysisEditor.cpp; sourceTree = "<group>"; };
 		5913BCB81F5755BB0070CDBD /* AnalysisEditor.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = AnalysisEditor.hpp; sourceTree = "<group>"; };
+		5914EE031F5C17AB005E49F5 /* essentia_analysis_gates.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = essentia_analysis_gates.h; sourceTree = "<group>"; };
+		5914EE041F5C3305005E49F5 /* arg_info.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = arg_info.h; path = jd_t/arg_info.h; sourceTree = "<group>"; };
 		593C21261F5B7E8100F30D3F /* essentia_analyser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = essentia_analyser.h; sourceTree = "<group>"; };
 		593C21271F5B7E8100F30D3F /* essentia_analyser_chain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = essentia_analyser_chain.h; sourceTree = "<group>"; };
 		593C21281F5B7E8100F30D3F /* essentia_analysers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = essentia_analysers.h; sourceTree = "<group>"; };
@@ -604,6 +606,7 @@
 		59935D5ABC6BBAE9E59B262E /* crc32.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = crc32.h; path = ../../../../../JUCE/modules/juce_core/zip/zlib/crc32.h; sourceTree = SOURCE_ROOT; };
 		599C767578908DB3DF2C73A2 /* juce_Primes.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_Primes.cpp; path = ../../../../../JUCE/modules/juce_cryptography/encryption/juce_Primes.cpp; sourceTree = SOURCE_ROOT; };
 		59B80F7543BBC66353C9F493 /* juce_ThreadLocalValue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = juce_ThreadLocalValue.h; path = ../../../../../JUCE/modules/juce_core/threads/juce_ThreadLocalValue.h; sourceTree = SOURCE_ROOT; };
+		59D71E1F1F5D4466002EF59B /* collection_ops.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = collection_ops.h; path = jd_t/collection_ops.h; sourceTree = "<group>"; };
 		59DC7EB668800F1097147262 /* juce_AudioUnitPluginFormat.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_AudioUnitPluginFormat.mm; path = ../../../../../JUCE/modules/juce_audio_processors/format_types/juce_AudioUnitPluginFormat.mm; sourceTree = SOURCE_ROOT; };
 		59EC36161F58E83000E7A438 /* libessentia.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libessentia.a; path = ../../../../../libs/essentia/lib/osx/libessentia.a; sourceTree = "<group>"; };
 		59EC36191F58E9AF00E7A438 /* libfftw3f.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfftw3f.a; path = ../../../../../libs/fftw3f/lib/libfftw3f.a; sourceTree = "<group>"; };
@@ -2353,12 +2356,22 @@
 			path = ../../Source/GUI/AnalysisEditor;
 			sourceTree = "<group>";
 		};
+		5914EE051F5C336F005E49F5 /* jd_t */ = {
+			isa = PBXGroup;
+			children = (
+				5914EE041F5C3305005E49F5 /* arg_info.h */,
+				59D71E1F1F5D4466002EF59B /* collection_ops.h */,
+			);
+			name = jd_t;
+			sourceTree = "<group>";
+		};
 		593C21251F5B7E8100F30D3F /* essentia_analysis */ = {
 			isa = PBXGroup;
 			children = (
 				593C21261F5B7E8100F30D3F /* essentia_analyser.h */,
-				593C21271F5B7E8100F30D3F /* essentia_analyser_chain.h */,
 				593C21281F5B7E8100F30D3F /* essentia_analysers.h */,
+				593C21271F5B7E8100F30D3F /* essentia_analyser_chain.h */,
+				5914EE031F5C17AB005E49F5 /* essentia_analysis_gates.h */,
 			);
 			name = essentia_analysis;
 			path = ../../Source/essentia_analysis;
@@ -2367,6 +2380,7 @@
 		595495B41F55F598004AF529 /* jd-lib */ = {
 			isa = PBXGroup;
 			children = (
+				5914EE051F5C336F005E49F5 /* jd_t */,
 				595495B51F55F598004AF529 /* analysis */,
 				595495B81F55F598004AF529 /* audio_math */,
 				595495BB1F55F598004AF529 /* dynamics */,
@@ -4239,8 +4253,9 @@
 		5D142A2AC502825DEFFADABF /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
 				CLANG_LINK_OBJC_RUNTIME = NO;
+				CLANG_WARN_CXX0X_EXTENSIONS = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/build/$(CONFIGURATION)";
 				DEAD_CODE_STRIPPING = YES;
@@ -4292,8 +4307,9 @@
 		725E28AD40BC825D3DBECB53 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
 				CLANG_LINK_OBJC_RUNTIME = NO;
+				CLANG_WARN_CXX0X_EXTENSIONS = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/build/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = NO;
@@ -4386,7 +4402,7 @@
 			baseConfigurationReference = 593DBE0F1F5741F0003E33CE /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
+				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_TESTABILITY = YES;
@@ -4470,7 +4486,7 @@
 			baseConfigurationReference = 593DBE0F1F5741F0003E33CE /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
+				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_C_LANGUAGE_STANDARD = c99;

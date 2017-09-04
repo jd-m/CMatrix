@@ -13,6 +13,7 @@ public Analyser<PitchYinFFT, float, float>
         NUM_OUTPUTS
     };
     
+    static const std::string name() { return  "PitchYinFFT"; };
 };
 
 struct PitchSalience :
@@ -22,6 +23,7 @@ public Analyser<PitchSalience, float>
         PITCH_SALIENCE,
         NUM_OUTPUTS
     };
+    static const std::string name() { return  "PitchSalience"; };
 };
 
 template<class T>
@@ -35,6 +37,7 @@ public Analyser<DCRemoval, std::vector<float>>
         SIGNAL,
         NUM_OUTPUTS
     };
+    static const std::string name() { return  "DCRemoval"; };
 };
 struct Windowing :
 public SingleBufferOutputter<Windowing>
@@ -43,6 +46,7 @@ public SingleBufferOutputter<Windowing>
         FRAME,
         NUM_OUTPUTS
     };
+    static const std::string name() { return  "Windowing"; };
 };
 struct Spectrum :
 public SingleBufferOutputter<Spectrum>
@@ -51,6 +55,7 @@ public SingleBufferOutputter<Spectrum>
         SPECTRUM,
         NUM_OUTPUTS
     };
+    static const std::string name() { return  "Spectrum"; };
 };
 
 template<class T>
@@ -67,6 +72,7 @@ public DoubleBufferOutputter<SpectralPeaks> {
         MAGNITUDES,
         NUM_OUTPUTS
     };
+    static const std::string name() { return  "SpectralPeaks"; };
 };
 
 struct HarmonicPeaks :
@@ -76,6 +82,7 @@ public DoubleBufferOutputter<HarmonicPeaks> {
         MAGNITUDES,
         NUM_OUTPUTS
     };
+    static const std::string name() { return  "HarmonicPeaks"; };
 };
 
 struct Inharmonicity :
@@ -85,6 +92,7 @@ public Analyser<Inharmonicity, float>
         INHARMONICITY,
         NUM_OUTPUTS
     };
+    static const std::string name() { return  "Inharmonicity"; };
 };
 
 struct Dissonance :
@@ -94,6 +102,7 @@ public Analyser<Dissonance, float>
         DISSONANCE,
         NUM_OUTPUTS
     };
+    static const std::string name() { return  "Dissonance"; };
 };
 
 #endif /* essentia_analyser_interface_h */

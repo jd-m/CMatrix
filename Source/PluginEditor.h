@@ -36,7 +36,7 @@ private:
 
     Jd_cmatrixAudioProcessor& processor;
     
-    
+    AudioInputWaveformDisplay& waveformViewer { processor.waveformViewer };
     TextEditor dbg;
     
     OwnedArray<Slider> sliders;

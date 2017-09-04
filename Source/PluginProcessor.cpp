@@ -93,15 +93,31 @@ void Jd_cmatrixAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     //Analysis
     analysisChain.createAlgorithms(sampleRate, samplesPerBlock);
     
-    mixedBuf.resize(samplesPerBlock);
+    {
+    int i = 0;
+    for (auto d: analysisChain.detectors) {
+        d.setThresholds(0.05,0.75);
+        
+        std::cout << i++ << " lower: " << d.thresholds[0] <<
+        " upper: " << d.thresholds[1] << std::endl;
+    }
+    }
     
+    mixedBuf.resize(samplesPerBlock);
     //Testing
     imp.init(sampleRate);
     imp.setFrequency(1.);
     
     sin.init(sampleRate);
-    sin.setFrequency(440.f);
-    sin.setAmplitude(0.1);
+    sin.setFrequency(100.f);
+    sin.setAmplitude(1.f);
+    
+    gate.init(sampleRate, samplesPerBlock);
+    gate.setRMSWindowSizeMS(10);
+    gate.setThresholds(0.25f,0.8f);
+    
+    
+
 }
 
 void Jd_cmatrixAudioProcessor::releaseResources()
@@ -156,19 +172,18 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
 //    imp.processBlock(mixedBuf.data(), numSamples);
 //    sin.processBlock(&mixedBuf[0], numSamples);
 //    convolver.processBlock(mixedBuf.data(), numSamples);
-    
+//    gate.processBlock(&mixedBuf[0], &mixedBuf[0], numSamples);
     memcpy(&analysisChain.inputSignal[0], &mixedBuf[0], numSamples * sizeof(float));
+    analysisChain.computeBlock();
     
+    for (int i = 0; i < numSamples; i++)
+    {
+        waveformViewer.addSample(mixedBuf[i]);
+    }
     
-    
-//    dbg_meter = pitchAnalyser.getPitch();//dbg
-//    dbg_meter = pitchSalienceAnalyser.getPitchSalience();
-//    std::cout << inharmonicityAnalyser.getInharmonicity() << std::endl;
-//    dbg_meter = inharmonicityAnalyser.getInharmonicity();
-//    auto& f = harmonicPeakAnalyser.getHarmonicMagnitudes();
-//    dbg_meter = (f.size() > 0) ? f.size() : f.size();
     for (int chan = 0; chan < numOutputChannels; chan++) {
         for (int i = 0; i < numSamples; i++) {
+            dbg_meter = mixedBuf[i];
 //            dbg_meter = convolver.bufferData()[i];//dbg
 //            outputs[chan][i] = convolver.bufferData()[i];
             outputs[chan][i] = 0.;

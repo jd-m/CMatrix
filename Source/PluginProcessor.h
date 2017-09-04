@@ -19,10 +19,29 @@
 #include <random>
 #include <algorithm>
 #include <list>
+#include "WaveformViewer.hpp"
 
 //==============================================================================
 /**
 */
+struct TestGate : public RangeDetector {
+
+    
+    void onExitFromBelow(int sampleIndex) override {
+            text =  "onExitFromBelow" ;
+    }
+    void onEntryToBelow(int sampleIndex) override{
+            text =  "onEntryToBelow" ;
+    }
+    void onExitFromAbove(int sampleIndex) override{
+            text =  "onExitFromAbove" ;
+    }
+    void onEntryToAbove(int sampleIndex) override{
+            text =  "onEntryToAbove" ;
+    }
+    
+    String text;
+};
 
 class Jd_cmatrixAudioProcessor  : public AudioProcessor
 {
@@ -73,9 +92,12 @@ public:
     //FOR-GUI
     
     //DEV
+    TestGate gate;
     volatile double dbg_meter = 0.;
     jd::Impulse<float> imp;
-    jd::SinOsc<float> sin;
+    jd::TriOsc<float> sin;
+    
+    AudioInputWaveformDisplay waveformViewer;
     
 private:
     //==============================================================================
