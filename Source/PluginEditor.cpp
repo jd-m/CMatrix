@@ -82,7 +82,7 @@ void Jd_cmatrixAudioProcessorEditor::timerCallback()
 {
     
     String s = "is within range: " + String(
-        processor.gate.isWithinRange()
+        processor.dbg_meter
     );
     
 //    auto& chain = processor.analysisChain;

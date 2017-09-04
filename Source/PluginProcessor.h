@@ -98,6 +98,7 @@ public:
     jd::TriOsc<float> sin;
     
     AudioInputWaveformDisplay waveformViewer;
+    LinearSmoothedValue<float> pitchSalience;
     
 private:
     //==============================================================================

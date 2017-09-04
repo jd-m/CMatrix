@@ -11,6 +11,7 @@ struct AnalyserChain {
     AnalyserChain()
      {
          detectors.resize(NUM_DETECTORS);
+         detectorLimits.resize(NUM_DETECTORS);
          for (int i = 0; i < NUM_DETECTORS; i++)
          {
              detectors[i].setRMSWindowSizeMS(1000);
@@ -96,8 +97,7 @@ struct AnalyserChain {
          
          detectorSignal.resize(samplesPerBlock);
      }
-     
-     
+    
      enum Detectors {
          LEVEL,
          PITCH,
@@ -117,7 +117,7 @@ struct AnalyserChain {
          return previousDetectorsWithinRange;
      }
      
-    RangeDetector& detector(Detectors detectorIndex)
+    RangeDetector& detector(int detectorIndex)
     {
         return detectors[detectorIndex];
     }
@@ -133,7 +133,15 @@ struct AnalyserChain {
          pitchYinFFT.compute();
          pitchSalience.compute();
         
-         detector(LEVEL).processBlock(&inputSignal[0], &detectorSignal[0], inputSignal.size());
+        for (int i = 0; i < inputSignal.size(); i++)
+        {
+            auto& lims = detectorLimits[LEVEL];
+            auto input = inputSignal[i];
+            auto normalisedInput = lims.normalised(input);
+            auto normalisedOutput = detector(LEVEL).processSample(normalisedInput);
+            detectorSignal[i] = normalisedOutput;
+        }
+//         detector(LEVEL).processBlock(&inputSignal[0], &detectorSignal[0], inputSignal.size());
          detector(PITCH).processedSample(pitchYinFFT.output<PitchYinFFT::PITCH>(),0);
          detector(PITCH_CONFIDENCE).processedSample(pitchYinFFT.output<PitchYinFFT::PITCH_CONFIDENCE>(),0);
          detector(INHARMONICITY).processedSample(inharmonicity.output<Inharmonicity::INHARMONICITY>(),0);
@@ -152,12 +160,23 @@ struct AnalyserChain {
     PitchSalience pitchSalience;
      
     std::vector<RangeDetector> detectors;
+    
+    void setRange (Detectors detectorID, float lower, float upper)
+    {
+        detectorLimits[detectorID].lower = lower;
+        detectorLimits[detectorID].upper = upper;
+    }
+    
+    template<typename F>
     struct RangeLimits
     {
-        volatile F lower = 0.;
-        volatile F upper = 1.;
+        F normalised (F input) {
+            return jd::linlin(input, lower, upper, (F)0., (F)1.);
+        }
+        F lower = 0.;
+        F upper = 1.;
     };
-    std::vector<RangeLimits> detectorLimits;
+    std::vector<RangeLimits<float>> detectorLimits;
     std::vector<float> detectorSignal;
    
 };

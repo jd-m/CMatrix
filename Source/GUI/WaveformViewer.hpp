@@ -46,7 +46,7 @@ public:
         g.strokePath(p, PathStrokeType(1));
         
         auto r = getLocalBounds().toFloat();
-        g.drawRect(r.removeFromTop(heightf * 0.5f));
+//        g.drawRect(r.removeFromTop(heightf * 0.5f));
         g.drawRect(r);
     
     }
@@ -68,6 +68,10 @@ public:
     void clear ()
     {
         zeromem (circularBuffer, sizeof (float) * bufferSize);
+    }
+    void setSamplesToAverage (size_t newSamplesToAverage)
+    {
+        samplesToAverage = newSamplesToAverage;
     }
 private:
     float* circularBuffer;

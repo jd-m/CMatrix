@@ -115,9 +115,8 @@ void Jd_cmatrixAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     gate.init(sampleRate, samplesPerBlock);
     gate.setRMSWindowSizeMS(10);
     gate.setThresholds(0.25f,0.8f);
-    
-    
 
+    pitchSalience.reset(sampleRate, 0.1);
 }
 
 void Jd_cmatrixAudioProcessor::releaseResources()
@@ -176,14 +175,20 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
     memcpy(&analysisChain.inputSignal[0], &mixedBuf[0], numSamples * sizeof(float));
     analysisChain.computeBlock();
     
+    
+    
+    pitchSalience.setValue(analysisChain.pitchSalience.output<0>());
     for (int i = 0; i < numSamples; i++)
     {
-        waveformViewer.addSample(mixedBuf[i]);
+        dbg_meter = pitchSalience.getNextValue();
+        waveformViewer.addSample(dbg_meter);
     }
+    
     
     for (int chan = 0; chan < numOutputChannels; chan++) {
         for (int i = 0; i < numSamples; i++) {
-            dbg_meter = mixedBuf[i];
+            
+//            dbg_meter = mixedBuf[i];
 //            dbg_meter = convolver.bufferData()[i];//dbg
 //            outputs[chan][i] = convolver.bufferData()[i];
             outputs[chan][i] = 0.;
