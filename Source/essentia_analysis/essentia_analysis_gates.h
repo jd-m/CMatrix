@@ -10,6 +10,6 @@
 #define essentia_analysis_gates_h
 #include "jdHeader.h"
 
-using RangeDetector = jd::GateDouble<float, jd::RMSEnvelopeFollower<float>>;
+using RangeDetector = jd::GateDouble<float>;
 
 #endif /* essentia_analysis_gates_h */

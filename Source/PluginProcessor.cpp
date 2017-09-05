@@ -87,17 +87,34 @@ void Jd_cmatrixAudioProcessor::changeProgramName (int index, const String& newNa
 //==============================================================================
 void Jd_cmatrixAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
+    
+    controlBlockSize = (samplesPerBlock / loopsPerBlock);
+    double controlRate = (sampleRate / samplesPerBlock) * loopsPerBlock;
+    
+    std::cout << "\nsampleRate: " << sampleRate <<
+    "\ncontrolBlockSize: " << controlBlockSize <<
+    "\nloopsPerBlock: " << loopsPerBlock <<
+    "\ncontrolRate: "  << controlRate << std::endl;
     //Processors
-    convolver.prepareToPlay(sampleRate, samplesPerBlock);
+    convolver.prepareToPlay(sampleRate, controlBlockSize);
+    
+    for (auto i : analysisChain.detectors)
+        waveformViewers.add(new AudioInputWaveformDisplay());
+    
+    for (auto w : waveformViewers)
+        w->setSamplesToAverage(64);
     
     //Analysis
-    analysisChain.createAlgorithms(sampleRate, samplesPerBlock);
-    
+    analysisChain.init(sampleRate, sampleRate, controlBlockSize);
+
     {
+
     int i = 0;
-    for (auto d: analysisChain.detectors) {
-        d.setThresholds(0.05,0.75);
+    for (auto& d: analysisChain.detectors) {
+        d.init(sampleRate, samplesPerBlock);
+        d.setThresholds(0.01,0.96);
         
+        std::cout <<  d.thresholds.size() << std::endl;
         std::cout << i++ << " lower: " << d.thresholds[0] <<
         " upper: " << d.thresholds[1] << std::endl;
     }
@@ -109,14 +126,11 @@ void Jd_cmatrixAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     imp.setFrequency(1.);
     
     sin.init(sampleRate);
-    sin.setFrequency(100.f);
-    sin.setAmplitude(1.f);
+    sin.setFrequency(0.125f);
+    sin.setAmplitude(2.f);
     
-    gate.init(sampleRate, samplesPerBlock);
-    gate.setRMSWindowSizeMS(10);
-    gate.setThresholds(0.25f,0.8f);
-
-    pitchSalience.reset(sampleRate, 0.1);
+    pitchSalience.setSampleRate(sampleRate);
+    pitchSalience.setDurationS(0.01, 1.);
 }
 
 void Jd_cmatrixAudioProcessor::releaseResources()
@@ -167,23 +181,82 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
     
         mixedBuf[i] = sample / (float)numInputChannels;
     }
+//    sin.processBlock(&mixedBuf[0], numSamples);
+    
+    //control loop
+//    for (int i = 0; i < loopsPerBlock; i++)
+//    {
+//        memcpy(&analysisChain.inputSignal[0], &mixedBuf[i * controlBlockSize], controlBlockSize * sizeof(float));
+//        analysisChain.computeBlock();
+//        pitchSalience.setValue(analysisChain.pitchSalience.output<0>());
+//        
+//        for (int j = 0; j < controlBlockSize;j++)
+//        {
+//            dbg_meter = pitchSalience.getNextValue();
+//            
+//            waveformViewer.addSample(dbg_meter);
+//        }
+//    }
+
+    sin.processBlock(&mixedBuf[0], numSamples);
+    
+    int remaining = numSamples;
+    
+    while (remaining > 0) {
+        const int numToCopy = std::min(remaining, (int)controlBlockSize);
+        const int pos = numSamples - remaining;
+        auto& ac = analysisChain;
+        memcpy(&ac.inputSignal[0], &mixedBuf[pos], controlBlockSize * sizeof(float));
+        ac.computeBlock();
+        //controlLoop
+//        ac.smoothedAnalyserOutputs[PITCH].setValue(ac.pitchYinFFT.output<0>());
+//        ac.smoothedAnalyserOutputs[PITCH].setValue(ac.pitchYinFFT.output<0>());
+//        ac.smoothedAnalyserOutputs[PITCH].updateTarget();
+        
+//        ac.smoothedAnalyserOutputs[PITCH_SALIENCE].setValue(ac.pitchSalience.output<0>());
+//        ac.smoothedAnalyserOutputs[INHARMONICITY].setValue(ac.inharmonicity.output<0>());
+        
+//        for (auto d_i : ac.controlRateDetectors)
+//            ac.smoothedAnalyserOutputs[d_i].updateTarget();
+        
+        //audioLoop
+//        ac.detector(SOLO).checkThreshold(ac.pitchYinFFT.output<1>());
+        for (int i = 0; i < controlBlockSize; i++)
+        {
+//            for (auto d_i : ac.controlRateDetectors) {
+//                
+//                const auto smoothedOutput = ac.smoothedAnalyserOutputs[d_i].nextValue();
+//                auto sig = ac.envFollowers[d_i].processedSample(smoothedOutput);
+//                ac.detectors[d_i].checkThreshold(sig);
+//                //            ac.outputs[d_i] = smoothedOutput;
+//                
+//                waveformViewers[d_i]->addSample(smoothedOutput);
+//            }
+            
+//            waveformViewers[PITCH]->addSample(ac.detectorLimits[PITCH](ac.pitchYinFFT.output<0>()).normalised());
+            
+            for (auto d_i : ac.audioRateDetectors) {
+                auto sig = ac.envFollowers[LEVEL].processedSample(ac.inputSignal[i]);
+                ac.detectors[LEVEL].checkThreshold(sig);
+                auto scaled = ac.scalingFuncs[LEVEL](sig);
+                auto normed = ac.detectorLimits[LEVEL].normalise(scaled);
+                ac.outputs[LEVEL] =  ac.scalingFuncs[LEVEL](mixedBuf[pos  +i]);
+//                jd::linlin(,-60.f,6.f,0.f,1.f);
+                
+                waveformViewers[LEVEL]->addSample(ac.normalisedOutput(LEVEL));
+//                ac.outputs[d_i] = sig;
+                outputs[0][pos + i] = sig ;
+                outputs[1][pos + i] = sig;
+            }
+        }
+
+        remaining -= numToCopy;
+    }
     
 //    imp.processBlock(mixedBuf.data(), numSamples);
 //    sin.processBlock(&mixedBuf[0], numSamples);
 //    convolver.processBlock(mixedBuf.data(), numSamples);
 //    gate.processBlock(&mixedBuf[0], &mixedBuf[0], numSamples);
-    memcpy(&analysisChain.inputSignal[0], &mixedBuf[0], numSamples * sizeof(float));
-    analysisChain.computeBlock();
-    
-    
-    
-    pitchSalience.setValue(analysisChain.pitchSalience.output<0>());
-    for (int i = 0; i < numSamples; i++)
-    {
-        dbg_meter = pitchSalience.getNextValue();
-        waveformViewer.addSample(dbg_meter);
-    }
-    
     
     for (int chan = 0; chan < numOutputChannels; chan++) {
         for (int i = 0; i < numSamples; i++) {

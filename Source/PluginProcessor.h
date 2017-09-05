@@ -27,19 +27,19 @@
 struct TestGate : public RangeDetector {
 
     
-    void onExitFromBelow(int sampleIndex) override {
-            text =  "onExitFromBelow" ;
-    }
-    void onEntryToBelow(int sampleIndex) override{
-            text =  "onEntryToBelow" ;
-    }
-    void onExitFromAbove(int sampleIndex) override{
-            text =  "onExitFromAbove" ;
-    }
-    void onEntryToAbove(int sampleIndex) override{
-            text =  "onEntryToAbove" ;
-    }
-    
+//    void onExitFromBelow(int sampleIndex) override {
+//            text =  "onExitFromBelow" ;
+//    }
+//    void onEntryToBelow(int sampleIndex) override{
+//            text =  "onEntryToBelow" ;
+//    }
+//    void onExitFromAbove(int sampleIndex) override{
+//            text =  "onExitFromAbove" ;
+//    }
+//    void onEntryToAbove(int sampleIndex) override{
+//            text =  "onEntryToAbove" ;
+//    }
+//    
     String text;
 };
 
@@ -83,22 +83,28 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
     
     std::vector<float> mixedBuf;
+    
+    int controlBlockSize {0};
+    int loopsPerBlock { 8 };
 
     //PROCESSOR
     SimpleConvolver convolver;
     
-    
+    RangeDetector gate;
     AnalyserChain analysisChain;
     //FOR-GUI
-    
+    Detectors SOLO { LEVEL };
     //DEV
-    TestGate gate;
+    std::vector<float>& meterInputs { analysisChain.outputs };
+    
     volatile double dbg_meter = 0.;
     jd::Impulse<float> imp;
-    jd::TriOsc<float> sin;
+    jd::Phasor<float> sin;
     
-    AudioInputWaveformDisplay waveformViewer;
-    LinearSmoothedValue<float> pitchSalience;
+    OwnedArray<AudioInputWaveformDisplay> waveformViewers;
+    
+    
+    jd::SmoothedValue<float> pitchSalience;
     
 private:
     //==============================================================================

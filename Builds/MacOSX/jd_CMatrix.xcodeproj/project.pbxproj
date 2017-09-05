@@ -568,6 +568,7 @@
 		5913BCB81F5755BB0070CDBD /* AnalysisEditor.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = AnalysisEditor.hpp; sourceTree = "<group>"; };
 		5914EE031F5C17AB005E49F5 /* essentia_analysis_gates.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = essentia_analysis_gates.h; sourceTree = "<group>"; };
 		5914EE041F5C3305005E49F5 /* arg_info.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = arg_info.h; path = jd_t/arg_info.h; sourceTree = "<group>"; };
+		59286BBD1F5E20EC0009185F /* jd_util.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = jd_util.h; sourceTree = "<group>"; };
 		593C21261F5B7E8100F30D3F /* essentia_analyser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = essentia_analyser.h; sourceTree = "<group>"; };
 		593C21271F5B7E8100F30D3F /* essentia_analyser_chain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = essentia_analyser_chain.h; sourceTree = "<group>"; };
 		593C21281F5B7E8100F30D3F /* essentia_analysers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = essentia_analysers.h; sourceTree = "<group>"; };
@@ -2365,6 +2366,14 @@
 			name = jd_t;
 			sourceTree = "<group>";
 		};
+		59286BBE1F5E21440009185F /* utils */ = {
+			isa = PBXGroup;
+			children = (
+				59286BBD1F5E20EC0009185F /* jd_util.h */,
+			);
+			path = utils;
+			sourceTree = "<group>";
+		};
 		593C21251F5B7E8100F30D3F /* essentia_analysis */ = {
 			isa = PBXGroup;
 			children = (
@@ -2380,6 +2389,7 @@
 		595495B41F55F598004AF529 /* jd-lib */ = {
 			isa = PBXGroup;
 			children = (
+				59286BBE1F5E21440009185F /* utils */,
 				5914EE051F5C336F005E49F5 /* jd_t */,
 				595495B51F55F598004AF529 /* analysis */,
 				595495B81F55F598004AF529 /* audio_math */,
