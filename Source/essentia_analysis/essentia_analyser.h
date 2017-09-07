@@ -30,9 +30,6 @@ public:
     std::tuple<Args...> outputs;
     
     std::size_t numDetectors { jd::num_floats_args<0, Args...>() };
-//    std::vector<RangeDetector&> detectors;
-//    std::vector<size_t> detectorIndices;
-//    { std::vector<GateTriggeredEnvelope> (numDetectors) };
     
     std::unique_ptr<Algorithm> algorithm;
     
@@ -42,25 +39,7 @@ public:
     Analyser(){
         static_assert(sizeof...(Args)==Derived::NUM_OUTPUTS,
                       "NUMBER OF OUTPUTS GIVEN AND OUTPUTS DEFINED DON'T MATCH");
-//        using i_collector = jd::index_collector;
-//        i_collector index_collector;
-//        detectors.reserve(numDetectors);
-//        detectorIndices.reserve(numDetectors);
-//        jd::if_float_index< 0,i_collector, Args...>(std::forward<i_collector>(index_collector));
-//        detectorIndices = std::move(index_collector.indices);
-//        gates.resize(numDetectors);
-//        for (auto i : detectorIndices) std::cout << " index: "  << i ;
-//        std::cout << std::endl;
     }
-    
-//    void init (float sampleRate, int samplesPerBlock)
-//    {
-//        float analysisRate = static_cast<float>(samplesPerBlock);
-//        for(auto detector : detectors)
-//            detector.init(analysisRate, gates);
-//        
-//    
-//    }
 
     void setAlgorithm(Algorithm* newAlgorithm) {
         algorithm = std::move(std::unique_ptr<Algorithm> (newAlgorithm));
@@ -124,7 +103,7 @@ public:
         return floatCollector.values;
     }
     
-    void compute() {
+    void compute() noexcept {
         using namespace essentia;
         if (m_isEnabled)
             try {

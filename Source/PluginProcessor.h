@@ -24,24 +24,6 @@
 //==============================================================================
 /**
 */
-struct TestGate : public RangeDetector {
-
-    
-//    void onExitFromBelow(int sampleIndex) override {
-//            text =  "onExitFromBelow" ;
-//    }
-//    void onEntryToBelow(int sampleIndex) override{
-//            text =  "onEntryToBelow" ;
-//    }
-//    void onExitFromAbove(int sampleIndex) override{
-//            text =  "onExitFromAbove" ;
-//    }
-//    void onEntryToAbove(int sampleIndex) override{
-//            text =  "onEntryToAbove" ;
-//    }
-//    
-    String text;
-};
 
 class Jd_cmatrixAudioProcessor  : public AudioProcessor
 {
@@ -91,20 +73,22 @@ public:
     SimpleConvolver convolver;
     
     RangeDetector gate;
+    //AnalysisChain
     AnalyserChain analysisChain;
     //FOR-GUI
-    Detectors SOLO { LEVEL };
+//    Detectors SOLO { LEVEL };
     //DEV
-    std::vector<float>& meterInputs { analysisChain.outputs };
+    /* DetectorChains*/
+//    std::array<DetectorUnit, NUM_DETECTORS> detectors;
+    DetectorChain detectors;
+    int SOLO { LEVEL };
+//    std::vector<float>& meterInputs { analysisChain.outputs };
     
     volatile double dbg_meter = 0.;
     jd::Impulse<float> imp;
     jd::Phasor<float> sin;
     
-    OwnedArray<AudioInputWaveformDisplay> waveformViewers;
-    
-    
-    jd::SmoothedValue<float> pitchSalience;
+    OwnedArray<SignalDrawer> waveformViewers;
     
 private:
     //==============================================================================

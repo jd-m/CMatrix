@@ -3,13 +3,14 @@
 
 #include <stdio.h>
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "essentia_analyser_chain.h"
+#include "Settings.h"
 
-
-class AudioInputWaveformDisplay  : public Component,
+class SignalDrawer  : public Component,
 public Timer
 {
 public:
-    AudioInputWaveformDisplay()
+    SignalDrawer()
     {
         bufferPos = 0;
         bufferSize = 2048;
@@ -18,29 +19,20 @@ public:
         clear();
         currentInputLevel = 0.0f;
         numSamplesIn = 0;
-        setOpaque (false);
+//        setOpaque (true);
         startTimerHz(30); 
     }
-    ~AudioInputWaveformDisplay()
+    ~SignalDrawer()
     {
         free(circularBuffer);
     }
-    
-    enum ScalingMode {
-        LIN,
-        LOG_AMP,
-        LOG_FREQ
-    };
-    
-    
     void paint (Graphics& g)
     {
         g.fillAll (Colours::transparentBlack);
-        g.setColour (lineColour);
-        
-//        const float margin = 0.1f;
-//        const float halfMargin = margin * 0.5f;
-//        const float halfHeight = (float)getHeight() * 0.5f;
+        if (isActive)
+            g.setColour (lineColour);
+        else
+            g.setColour(lineColour.withAlpha((float)0.1));
         const float heightf = static_cast<float>(getHeight());
         int bp = bufferPos;
         
@@ -48,70 +40,17 @@ public:
     
         p.startNewSubPath(getWidth(), 0);
         
-        for (int x = getWidth() - 1; x-- >= 0;) {
+        for (int x = getWidth() - 1; x > 0; x--) {
             const int samplesAgo = getWidth() - x;
+            
             const float level = circularBuffer [(bp + bufferSize - samplesAgo) % bufferSize];
-                p.lineTo((float)x, heightf - heightf * level);
+            float xf = static_cast<float>(x);
+            
+            p.lineTo(xf, heightf - heightf * std::min(level, 0.99999f));
         }
-        g.strokePath(p, PathStrokeType(1));
-        
-        auto r = getLocalBounds().toFloat();
-        
-//        drawLogScaledRange(g, {20.f,100.f,500.f,2000.f,10000.f }, [](float const x){
-//            return jd::hzmidi(x);
-//        });
-        drawLogScaledRange(g, {-60,-20,-6,0,6}, [](float x){ return x; });
-        
-//        switch (scalingMode) {
-//            case LIN:
-//                0;
-//                break;
-//            case LOG_AMP:
-//                0;
-//                break;
-//            case LOG_FREQ:
-//                0;
-//                break;
-//                
-//            default:
-//                break;
-//        }
     
-    }
-
-    template<class C = std::vector<float>, class ScalingFunc>
-    void drawLogScaledRange(Graphics &g, C unscaledMarkers, ScalingFunc func = [](float x){ return x;})
-    {
-        g.setColour(Colours::grey.withAlpha((float)0.1f));
-        
-        auto drawTextBox = [&](String text, int y) {
+        g.strokePath(p, PathStrokeType(1));
             
-            auto textBox = Rectangle<int> { 3, y - 5, 50, 10 };
-            g.setColour(Colours::grey.withAlpha((float)0.7f));
-            g.fillRect(textBox);
-            g.setColour(Colours::darkgrey.withAlpha((float)0.7f));
-            g.drawRect(textBox);
-            
-            auto textBoxFont = Font("courier", 8, 0);
-            g.setColour(Colours::black);
-            g.setFont(textBoxFont);
-            g.drawText(text,textBox, Justification::centred);
-        };
-        
-        drawTextBox (String(unscaledMarkers.back())+"Hz", 5);
-        
-        for (int i = unscaledMarkers.size()-2; i > 0; --i)
-        {
-            auto normalisedMarker = jd::linlin(func(unscaledMarkers[i]),
-                                               func(unscaledMarkers.front()),
-                                               func(unscaledMarkers.back()),
-                                               0.f,
-                                               1.f );
-            int y = getHeight() * (1.f - normalisedMarker);
-            g.drawLine ( 0, y, getWidth(), y, 1);
-            drawTextBox(String(unscaledMarkers[i])+"Hz", y);
-        }
-        drawTextBox (String(unscaledMarkers.front())+"Hz", getHeight()-5);
     }
     void timerCallback()
     {
@@ -120,7 +59,7 @@ public:
     void addSample (const float sample)
     {
         currentInputLevel += ::fabs(sample);
-        
+//        std::cout << currentInputLevel << std::endl;
         if (++numSamplesIn > samplesToAverage)
         {
             circularBuffer [bufferPos++ % bufferSize] = currentInputLevel / samplesToAverage;
@@ -140,20 +79,17 @@ public:
     {
         lineColour = newLineColour;
     }
-    
-    void setMode (ScalingMode newScalingMode)
+    void setIsActive(bool newIsActive)
     {
-        scalingMode = newScalingMode;
+        isActive = newIsActive;
+        repaint();
     }
-    
-    
+
 private:
-    bool isInFront {true};
+    bool isActive {true};
     float* circularBuffer;
     float currentInputLevel;
     Colour lineColour;
-    ScalingMode scalingMode;
     int volatile bufferPos, bufferSize, numSamplesIn, samplesToAverage = 128;
 };
-
 #endif /* WaveformViewer_hpp */

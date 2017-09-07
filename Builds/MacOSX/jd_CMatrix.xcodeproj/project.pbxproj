@@ -34,6 +34,7 @@
 		51E8C67022D706090E21D696 /* PluginEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B0738F9931D1B26631058C10 /* PluginEditor.cpp */; };
 		5913BCB91F5755BB0070CDBD /* AnalysisEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5913BCB71F5755BB0070CDBD /* AnalysisEditor.cpp */; };
 		5913BCBA1F575EF50070CDBD /* JDEnvelopeGUI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5913BCB11F574DEE0070CDBD /* JDEnvelopeGUI.cpp */; };
+		59286BCA1F5FA5720009185F /* SignalDisplayUI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 59286BC81F5FA5720009185F /* SignalDisplayUI.cpp */; };
 		593C212A1F5B82A900F30D3F /* libessentia.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 593C21291F5B82A900F30D3F /* libessentia.a */; };
 		593C212B1F5B82B000F30D3F /* libfftw3f.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 59EC36191F58E9AF00E7A438 /* libfftw3f.a */; };
 		593C212C1F5B82BC00F30D3F /* libfftw3f.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 59EC36191F58E9AF00E7A438 /* libfftw3f.a */; };
@@ -55,6 +56,8 @@
 		5954959E1F55D38C004AF529 /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E4786EB18363CAC582271B90 /* QTKit.framework */; };
 		5954959F1F55D38C004AF529 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A15A798BE8951DB67A43C57 /* QuartzCore.framework */; };
 		595495A01F55D38C004AF529 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 247658E64F85F993FAA56D91 /* WebKit.framework */; };
+		5980B1E81F60830A004E8F51 /* AnalysisMeter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5980B1E61F60830A004E8F51 /* AnalysisMeter.cpp */; };
+		5980B1EB1F60839E004E8F51 /* LookAndFeel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5980B1E91F60839E004E8F51 /* LookAndFeel.cpp */; };
 		63B8018C3B393F437444B8BE /* juce_events.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7E98928D149A1067391BCAA9 /* juce_events.mm */; };
 		6484853EB144E91237BFD219 /* juce_gui_basics.mm in Sources */ = {isa = PBXBuildFile; fileRef = F7AB18B47DD8E9E47A226E8A /* juce_gui_basics.mm */; };
 		67C3059C01F89EE22FF06CB4 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A15A798BE8951DB67A43C57 /* QuartzCore.framework */; };
@@ -569,6 +572,8 @@
 		5914EE031F5C17AB005E49F5 /* essentia_analysis_gates.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = essentia_analysis_gates.h; sourceTree = "<group>"; };
 		5914EE041F5C3305005E49F5 /* arg_info.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = arg_info.h; path = jd_t/arg_info.h; sourceTree = "<group>"; };
 		59286BBD1F5E20EC0009185F /* jd_util.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = jd_util.h; sourceTree = "<group>"; };
+		59286BC81F5FA5720009185F /* SignalDisplayUI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SignalDisplayUI.cpp; path = ../../Source/GUI/SignalDisplayUI.cpp; sourceTree = "<group>"; };
+		59286BC91F5FA5720009185F /* SignalDisplayUI.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = SignalDisplayUI.hpp; path = ../../Source/GUI/SignalDisplayUI.hpp; sourceTree = "<group>"; };
 		593C21261F5B7E8100F30D3F /* essentia_analyser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = essentia_analyser.h; sourceTree = "<group>"; };
 		593C21271F5B7E8100F30D3F /* essentia_analyser_chain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = essentia_analyser_chain.h; sourceTree = "<group>"; };
 		593C21281F5B7E8100F30D3F /* essentia_analysers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = essentia_analysers.h; sourceTree = "<group>"; };
@@ -603,6 +608,10 @@
 		59712C92AD71C9FF87C124C1 /* juce_Javascript.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_Javascript.cpp; path = ../../../../../JUCE/modules/juce_core/javascript/juce_Javascript.cpp; sourceTree = SOURCE_ROOT; };
 		59726A450BF94190829CA6AB /* juce_StretchableLayoutResizerBar.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_StretchableLayoutResizerBar.cpp; path = ../../../../../JUCE/modules/juce_gui_basics/layout/juce_StretchableLayoutResizerBar.cpp; sourceTree = SOURCE_ROOT; };
 		5977EEDD9267C6D691C3F226 /* AUMIDIBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AUMIDIBase.h; path = ../../../../../JUCE/modules/juce_audio_plugin_client/AU/CoreAudioUtilityClasses/AUMIDIBase.h; sourceTree = SOURCE_ROOT; };
+		5980B1E61F60830A004E8F51 /* AnalysisMeter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AnalysisMeter.cpp; path = ../../Source/GUI/AnalysisEditor/AnalysisMeter.cpp; sourceTree = "<group>"; };
+		5980B1E71F60830A004E8F51 /* AnalysisMeter.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = AnalysisMeter.hpp; path = ../../Source/GUI/AnalysisEditor/AnalysisMeter.hpp; sourceTree = "<group>"; };
+		5980B1E91F60839E004E8F51 /* LookAndFeel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LookAndFeel.cpp; path = ../../Source/GUI/LookAndFeel.cpp; sourceTree = "<group>"; };
+		5980B1EA1F60839E004E8F51 /* LookAndFeel.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = LookAndFeel.hpp; path = ../../Source/GUI/LookAndFeel.hpp; sourceTree = "<group>"; };
 		598D87FFE64AAF3A8F066673 /* juce_ThreadPool.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_ThreadPool.cpp; path = ../../../../../JUCE/modules/juce_core/threads/juce_ThreadPool.cpp; sourceTree = SOURCE_ROOT; };
 		59935D5ABC6BBAE9E59B262E /* crc32.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = crc32.h; path = ../../../../../JUCE/modules/juce_core/zip/zlib/crc32.h; sourceTree = SOURCE_ROOT; };
 		599C767578908DB3DF2C73A2 /* juce_Primes.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_Primes.cpp; path = ../../../../../JUCE/modules/juce_cryptography/encryption/juce_Primes.cpp; sourceTree = SOURCE_ROOT; };
@@ -2343,6 +2352,10 @@
 				5913BCAF1F574DEE0070CDBD /* JDEnvelopeGUI.hpp */,
 				5913BCB01F574DEE0070CDBD /* WaveformViewer.hpp */,
 				5913BCB11F574DEE0070CDBD /* JDEnvelopeGUI.cpp */,
+				59286BC81F5FA5720009185F /* SignalDisplayUI.cpp */,
+				59286BC91F5FA5720009185F /* SignalDisplayUI.hpp */,
+				5980B1E61F60830A004E8F51 /* AnalysisMeter.cpp */,
+				5980B1E71F60830A004E8F51 /* AnalysisMeter.hpp */,
 			);
 			name = Components;
 			sourceTree = "<group>";
@@ -2488,6 +2501,8 @@
 			children = (
 				5913BCB61F5755BB0070CDBD /* AnalysisEditor */,
 				5913BCB51F5755620070CDBD /* Components */,
+				5980B1E91F60839E004E8F51 /* LookAndFeel.cpp */,
+				5980B1EA1F60839E004E8F51 /* LookAndFeel.hpp */,
 			);
 			name = GUI;
 			sourceTree = "<group>";
@@ -4135,8 +4150,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				59286BCA1F5FA5720009185F /* SignalDisplayUI.cpp in Sources */,
 				5913BCB91F5755BB0070CDBD /* AnalysisEditor.cpp in Sources */,
 				DF04215014A07614E8DFB75F /* juce_audio_plugin_client_VST2.cpp in Sources */,
+				5980B1EB1F60839E004E8F51 /* LookAndFeel.cpp in Sources */,
+				5980B1E81F60830A004E8F51 /* AnalysisMeter.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
