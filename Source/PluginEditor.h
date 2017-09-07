@@ -15,7 +15,7 @@
 #include "PluginProcessor.h"
 #include <memory.h>
 #include "AnalysisEditor.hpp"
-
+#include "IREditor.hpp"
 
 //==============================================================================
 /**
@@ -42,7 +42,7 @@ private:
     TabbedComponent tabbedWindow {TabbedButtonBar::Orientation::TabsAtTop};
     
     AnalysisEditor analysisEditor { processor };
-    
+    IREditor irEditor;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Jd_cmatrixAudioProcessorEditor)
 };

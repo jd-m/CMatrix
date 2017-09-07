@@ -62,10 +62,10 @@ void Jd_cmatrixAudioProcessorEditor::timerCallback()
     for (auto& d : processor.detectors.detectors)
     {
         ss << "detector: " << i++ << " isWithinRange: " << d.isWithinRange()
-        << " low: " << d.rangeChecker.thresholds[0] << " upper: " << d.rangeChecker.thresholds[1] << " output: " << d.output <<  "\n";
+        << " low: " << d.rangeChecker.thresholds[0] << " upper: " << d.rangeChecker.thresholds[1] << " output: " << d.output << "\n";
     }
     
-    std::cout << ss.str() << std::endl;
+    std::cout << " dbg: " << processor.dbg_meter << " " << ss.str() << std::endl;
     
     
     repaint();

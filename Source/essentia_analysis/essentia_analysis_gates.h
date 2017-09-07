@@ -63,8 +63,8 @@ struct DetectorUnit {
     void setInput(float inputSample) {
         if (isEnabled) {
             float envelope = rmsEnvelope.processedSample(inputSample);
-            rangeChecker.checkThreshold(envelope);
             output = shouldConvertInput ? scaleInput(envelope) : envelope;
+            rangeChecker.checkThreshold(output);
             smoothedValue.setTarget(output);
             smoothedValue.updateTarget();
         } else {
@@ -110,7 +110,8 @@ struct DetectorUnit {
     //===============================================================
     bool isWithinRange() const
     {
-        return rangeChecker.isWithinRange();
+        return rangeChecker.thresholds[0] < output &&
+        output < rangeChecker.thresholds[1];
     }
     //===============================================================
     template<class Func>

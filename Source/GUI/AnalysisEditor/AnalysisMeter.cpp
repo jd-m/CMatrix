@@ -94,34 +94,34 @@ void AnalysisMeter::sliderValueChanged(juce::Slider *slider)
 {
     if (slider == &thresholdSlider) {
         
-        auto normScale = [&](float x){
-            return detector.shouldConvertInput ? detector.normalisedScaled(detector.scaleInput(jd::clip(x, detector.limits))) :
-            detector.normalisedScaled(jd::clip(x, detector.limits.lower,detector.limits.upper));
-        };
-        
-        float lower {};
-        if(detector.shouldConvertOutput)
-        {
-            lower = normScale(jd::linlin((float)slider->getMinValue(),
-                                0.f,
-                                1.f,
-                                (detector.limits.lower),
-                                (detector.limits.upper)));
-        } else {
-            lower = (float)slider->getMinValue();
-        }
-        float upper {};
-        
-        if(detector.shouldConvertOutput)
-        {
-            upper = normScale(jd::linlin((float)slider->getMaxValue(),
-                                         0.f,
-                                         1.f,
-                                         (detector.limits.lower),
-                                         (detector.limits.upper)));
-        } else {
-            upper = (float)slider->getMaxValue();
-        }
+//        auto normScale = [&](float x){
+//            return detector.shouldConvertInput ? detector.normalisedScaled(detector.scaleInput(jd::clip(x, detector.limits))) :
+//            detector.normalisedScaled(jd::clip(x, detector.limits.lower,detector.limits.upper));
+//        };
+//        
+        float lower {}, upper {};
+//        if(!detector.shouldConvertInput &&
+//            detector.shouldConvertOutput)
+//        {
+//            lower = (jd::linlin((float)slider->getMinValue(),
+//                                         0.f,
+//                                         1.f,
+//                                         (detector.limits.lower),
+//                                         (detector.limits.upper)));
+//            upper = (jd::linlin((float)slider->getMaxValue(),
+//                                         0.f,
+//                                         1.f,
+//                                         (detector.limits.lower),
+//                                         (detector.limits.upper)));
+//        } else if (detector.shouldConvertInput &&
+//                   detector.shouldConvertOutput) {
+        lower = detector.normalisedScaled(slider->getMinValue());
+        upper = detector.normalisedScaled(slider->getMaxValue());
+//
+//        }  else  {
+//            lower = (float)slider->getMinValue();
+//            upper = (float)slider->getMaxValue();
+//        }
         
         meterBar.setRange(1. - lower,
                           1. - upper );

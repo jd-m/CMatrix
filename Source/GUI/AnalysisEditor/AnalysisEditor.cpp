@@ -61,9 +61,12 @@ processor(p)
         auto& d = processor.detectors[i];
         auto m = new AnalysisMeter(d);
         addAndMakeVisible(m);
+        m->thresholdSlider.setRange(d.limits.lower, d.limits.upper);
 
         meters.add(m);
     }
+    meters[PITCH]->thresholdSlider.setSkewFactor(0.125);
+    meters[LEVEL]->thresholdSlider.setSkewFactor(0.5, true);
     
     addKeyListener(this);
     
