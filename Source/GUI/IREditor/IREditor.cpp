@@ -76,7 +76,7 @@ void IREditor::resized()
     
     auto bottom = r;
     buttonGrid.setBounds(r.removeFromTop(200).
-                         removeFromRight(800)
+                         removeFromRight(900)
                          .reduced(10,10)    );
 }
 //===================================================================
@@ -85,18 +85,6 @@ void IREditor::buttonClicked(juce::Button *button)
     if (button == &storeIrButton)   storeIrInfo();
     if (button == &setIrButton)     setCurrentIR();
     if (button == &removeIrButton)  removeIR();
-    
-//    
-//    for (int row = 0; row < buttonGrid.numRows; row++) {
-//        for (int column = 0; column < buttonGrid.numColumns; column++) {
-//            int n = row * buttonGrid.numColumns + column;
-//            auto buttonCell = buttonGrid.buttonCells[n];
-//            if (buttonCell == button)
-//            {
-//                
-//            }
-//        }
-//    }
 }
 //===================================================================
 void IREditor::comboBoxChanged(juce::ComboBox *comboBox)
@@ -104,7 +92,8 @@ void IREditor::comboBoxChanged(juce::ComboBox *comboBox)
     if (comboBox == &irInfosComboBox);
 }
 //===================================================================
-void IREditor::storeIrInfo() {
+void IREditor::storeIrInfo()
+{
     auto name = irNameLabel.getText();
     
     bool nameAlreadyUsed = false;
@@ -120,26 +109,26 @@ void IREditor::storeIrInfo() {
         newIrInfo.name = name;
         irInfos.add(newIrInfo);
         irInfosComboBox.addItem(name, newUID);
-        buttonGrid.addItemToComboBoxes(name, newUID);
+        buttonGrid.addItemToIRComboBoxes(name, newUID);
     }
 
 }
 //===================================================================
-void IREditor::setCurrentIR() {
-    
-    auto selectedItemUID = irInfosComboBox.getSelectedId();
+void IREditor::setCurrentIR()
+{
+    int selectedItemUID = irInfosComboBox.getSelectedId();
     for (const auto& info : irInfos)
         if (info.uid == selectedItemUID) {
             currentIrInfo.copyStateFrom(info);
             currentIrInfo.thumbnail->sendChangeMessage();
             sendChangeMessage();
         }
-    
 }
 //===================================================================
-void IREditor::removeIR() {
+void IREditor::removeIR()
+{
     
-    auto selectedIrInfoUID = irInfosComboBox.getSelectedId();
+    int selectedIrInfoUID = irInfosComboBox.getSelectedId();
 
     int index = 0;
     bool removedIr = false;
@@ -149,7 +138,7 @@ void IREditor::removeIR() {
         {
             irInfos.remove(index);
             irInfosComboBox.clear();
-            buttonGrid.clearComboBoxes();
+            buttonGrid.clearIRComboBoxes();
             removedIr = true;
             break;
         }
@@ -159,7 +148,7 @@ void IREditor::removeIR() {
         for (const auto& info : irInfos) {
             irInfosComboBox.addItem(info.name,
                                     info.uid);
-            buttonGrid.addItemToComboBoxes(info.name, info.uid);
+            buttonGrid.addItemToIRComboBoxes(info.name, info.uid);
         }
     
 }

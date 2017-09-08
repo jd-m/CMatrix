@@ -62,16 +62,14 @@ public:
     TextButton removeIrButton;
     TextButton removeAllIrsButton;
     ComboBox irInfosComboBox;
-    
-    ButtonGrid buttonGrid { irInfos };
-
-    //Set
-    /*      select irs to use (up to 4)         */
-    
 
     //Sequencer
-    //============================================================
+    ButtonGrid buttonGrid { irInfos };
     
+    
+    
+    //============================================================
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(IREditor)
 };
 
 

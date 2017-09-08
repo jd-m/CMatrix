@@ -15,16 +15,19 @@
 #include "LookAndFeel.hpp"
 #include "IRWaveformEditor.hpp"
 
-class IRSequencer {
-    
-    int currentIndex {0};
+
+struct IRSequenceElement {
+    int stepIndex;
+    int irClipindex;
+    bool isEnabled;
 };
+using IRSequence = Array<IRSequenceElement>;
+
 
 class ButtonGrid : public Component,
 public Button::Listener,
 public ComboBox::Listener,
-public KeyListener,
-public ValueTree::Listener
+public KeyListener
 {
 public:
     ButtonGrid(Array<IRState>& sourceIRStates);
@@ -40,134 +43,84 @@ public:
     const bool getToggleStateAt(int n);
     const bool getToggleStateAt(int row, int column);
     //============================================================
-    void addItemToComboBoxes(String itemName, int itemID);
-    void clearComboBoxes();
-    //============================================================
-    void valueTreePropertyChanged (ValueTree& tree, const Identifier& property) override
-    {
-        
-    }
-    //============================================================
-
-    //============================================================
+    void addItemToIRComboBoxes(String itemName, int itemID);
+    void clearIRComboBoxes();
+    //===========================================================
+    void setParametersToReferToValueTreeProperties();
     bool keyPressed (const KeyPress& key,
                      Component* originatingComponent) override
     {
         if (key.getTextCharacter() == juce_wchar{'s'})
         {
-            saveState();
+        }
+        if (key.getTextCharacter() == juce_wchar{'n'})
+        {
+            std::cout << currentSequenceState.getProperty("name").toString() << std::endl;
         }
         if (key.getTextCharacter() == juce_wchar{'l'})
         {
-            std::cout << "YAK" << std::endl;
-            state.copyPropertiesFrom(stored, nullptr);
-//            loadState();
+//            for (const auto& irSequence : irSequences)
+//            {
+//                for (auto el : irSequence.second)
+//                {
+//                    std::cout << "sequence name: " <<
+//                    irSequence.first << " stepIndex: "
+//                    <<  el.stepIndex << " irClipIndex " << el.irClipindex
+//                    << " isEnabled " << el.isEnabled << std::endl;
+//                }
+//            }
+//            std::cout << irSequences.size() << std::endl;
         }
         return true;
         
     }
-    
-    
-    void saveState()
-    {
-        stored = state.createCopy();
-    }
-//
-//    void loadState()
-//    {
-//
-//        for (auto irComboBox : irComboBoxes) {
-//            irComboBox->clear();
-//            for (int i = 0; i < irComboBox->getNumItems(); i++)
-//            {
-//                auto id = state.getPropertyAsValue(getComboBoxIDPropertyName(irComboBox, i), nullptr).getValue();
-//                
-//                auto text = state.getProperty(Identifier(getComboBoxItemTextPropertyName(irComboBox, i))).toString();
-////                std::cout << "id: " << ((int)id) <<  " text: " << text <<std::endl;
-//                irComboBox->addItem(text, id);
-//                
-//            }
-//        }
-//        
-//        for (auto buttonCell : buttonCells)
-//        {
-//            bool loadedButtonState = state.getProperty(getButtonStatePropertyName(buttonCell));
-////            std::cout << "buttonState: " << loadedButtonState << std::endl;
-//            buttonCell->setToggleState(loadedButtonState, dontSendNotification);
-//        }
-//    };
-    
-//    void setButtonToggleStateProperty(Button* button)
-//    {
-//        state.setProperty(getButtonStatePropertyName(button), button->getToggleState(), nullptr);
-//    }
-    
-    Identifier getButtonStatePropertyName(Button* button)
+
+    static Identifier getButtonStatePropertyName(Button* button)
     {
         return Identifier(button->getName() + ("-ToggleState"));
     }
-    
-    Identifier getComboBoxIDPropertyName(ComboBox* comboBox, int itemIndex)
+    static Identifier getComboBoxIDPropertyName(ComboBox* comboBox, int itemIndex)
     {
         return Identifier( comboBox->getName() + "-ItemId-" + String(itemIndex));
     }
-    
-    Identifier getComboBoxItemTextPropertyName(ComboBox* comboBox, int itemIndex)
+    static Identifier getComboBoxItemTextPropertyName(ComboBox* comboBox, int itemIndex)
     {
         return Identifier( comboBox->getName() + "-ItemText-" + String(itemIndex));
     }
-    
-    ValueTree state { "IRSequencerState"};
-    
-    ValueTree stored;
+
 private:
+    //===========================================================
+    void storeCurrentSequence();
+    void overwriteCurrentSequence();
+    void removeCurrentSequence();
+    void setCurrentSequence();
+    void clearCurrentSequence();
+    void clearAllSequences();
+    //===========================================================
+    IRSequence generateIRSequenceFromCurrentState();
+    //===========================================================
     template<class Function>
-    void performFunctionOnColumn(int columnIndex, Function functionToPerform)
-    {
-        for (int row = 0; row < numRows; row++)
-        {
-            functionToPerform(buttonCells[columnIndex * numRows + row]);
-        }
-    }
+    void performFunctionOnColumn(int columnIndex, Function functionToPerform);
+    //===========================================================
     template<class Function>
-    void performFunctionOnCells(Function functionToPerform)
-    {
-        for (int column = 0; column < numColumns; column++) {
-            for (int row = 0; row < numRows; row++) {
-                
-                int cellIndex = column * numRows + row;
-                functionToPerform(buttonCells[cellIndex], column, row);
-            }
-        }
-    }
-    bool columnHasActiveCell(int columnIndexToCheck)
-    {
-        bool hasActiveCell = false;
-        for (int rowIndex = 0; rowIndex < numRows; rowIndex++)
-        {
-            int index = columnIndexToCheck * numRows + rowIndex;
-            if (buttonCells[index]->getToggleState()) {
-                    hasActiveCell = true;
-                    break;
-            }
-        }
-        return hasActiveCell;
-    }
-    void deselectAllCellsInColumn(int columnIndex)
-    {
-        performFunctionOnColumn(columnIndex, [](ToggleButton* button){
-            button->setToggleState(false, dontSendNotification);
-        });
-    }
+    void performFunctionOnCells(Function functionToPerform);
+    //===========================================================
+    bool columnHasActiveCell(int columnIndexToCheck);
+    int getActiveRowInColumn(int columnIndex);
+    void deselectAllCellsInColumn(int columnIndex);
+    //===========================================================
     
     int numColumns {16};
     int numRows {4};
     int numElements {numColumns * numRows};
 
-    Array<IRState>& storedIrStates;
-    Array<ValueTree> sequenceStates;
+    ValueTree currentSequenceState { "IRSequencerState"};
+    HashMap<String, ValueTree> sequenceStates;
     
-    Array<IRState> patternStates;
+    Array<IRState>& storedIrStates;
+
+    HashMap<String, IRSequence> irSequences;
+    //===========================================================
     OwnedArray<ToggleButton> buttonCells;
     OwnedArray<ComboBox> irComboBoxes;
     
@@ -175,14 +128,36 @@ private:
     CmatrixLookAndFeel lookAndFeel;
     
     Rectangle<int> gridBounds;
-    Rectangle<int> comboBoxColumn;
+    
+    Label sequenceNameLabel;
     
     TextButton storeSequenceButton;
     TextButton removeSequenceButton;
-    TextButton loadSequenceButton;
+    TextButton overwriteSequenceButton;
+    TextButton setSequenceButton;
+    TextButton clearCurrentSequenceButton;
     TextButton clearSequencesButton;
     
     ComboBox sequencesComboBox;
 };
+//=========================================================================
+/*              IR SEQUENCER
+    Each Convolution Chain has an instance of an IR SEQUENCER which it
+    uses to step through a sequence stored by the button grid;
+ */
+//=========================================================================
+class IRSequencer {
+    
+    IRSequencer(Array<IRState>& sourceIRClipDefs,
+                ValueTree& valueTreeToReferFrom);
+
+    Array<IRState>& irClipDefs;
+    
+    void reset();
+    
+    
+    int currentIndex {0};
+};
+
 
 #endif /* ButtonGrid_hpp */
