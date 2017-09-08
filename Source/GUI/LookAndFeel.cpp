@@ -25,7 +25,7 @@ void CmatrixLookAndFeel::drawToggleButton(juce::Graphics &g, juce::ToggleButton 
     
     if (isButtonDown || button.getToggleState()) {
         g.setColour(Colours::darkorange);
-        g.fillRoundedRectangle(r.reduced(5).toFloat(), 2.f);
+        g.fillRoundedRectangle(r.reduced(10).toFloat(), 2.f);
     };
     
 }

@@ -19,8 +19,8 @@ Jd_cmatrixAudioProcessorEditor::Jd_cmatrixAudioProcessorEditor (Jd_cmatrixAudioP
     startTimerHz(20);
     
     addAndMakeVisible(tabbedWindow);
-    tabbedWindow.addTab("Analysis", Colours::darkgrey, &analysisEditor, false);
-//    tabbedWindow.addTab("Analysis", Colours::lightgrey, &analysisEditor, false);
+//    tabbedWindow.addTab("Analysis", Colours::darkgrey, &ana/lysisEditor, false);
+    tabbedWindow.addTab("IR", Colours::lightgrey, &irEditor, false);
     
     File f = File("~/Music/sc_sounds/beat/piano/piano_01.wav");
     processor.convolver.loadIRFromFile(f, 0);
@@ -58,14 +58,14 @@ void Jd_cmatrixAudioProcessorEditor::timerCallback()
     
     std::stringstream ss;
     
-    int i = 0;
-    for (auto& d : processor.detectors.detectors)
-    {
-        ss << "detector: " << i++ << " isWithinRange: " << d.isWithinRange()
-        << " low: " << d.rangeChecker.thresholds[0] << " upper: " << d.rangeChecker.thresholds[1] << " output: " << d.output << "\n";
-    }
-    
-    std::cout << " dbg: " << processor.dbg_meter << " " << ss.str() << std::endl;
+//    int i = 0;
+//    for (auto& d : processor.detectors.detectors)
+//    {
+//        ss << "detector: " << i++ << " isWithinRange: " << d.isWithinRange()
+//        << " low: " << d.rangeChecker.thresholds[0] << " upper: " << d.rangeChecker.thresholds[1] << " output: " << d.output << "\n";
+//    }
+//    
+//    std::cout << " dbg: " << processor.dbg_meter << " " << ss.str() << std::endl;
     
     
     repaint();

@@ -9,12 +9,12 @@
 #ifndef IRSelector_hpp
 #define IRSelector_hpp
 
-#include <stdio.h>
-#include "../../../JuceLibraryCode/JuceHeader.h"
-#include "../../PluginProcessor.h"
-#include "../../jd-lib/jdHeader.h"
-#include "../JDEnvelopeGUI.hpp"
-
+//#include <stdio.h>
+//#include "../../../JuceLibraryCode/JuceHeader.h"
+//#include "../../PluginProcessor.h"
+//#include "../../jd-lib/jdHeader.h"
+//#include "../JDEnvelopeGUI.hpp"
+//
 //=====================================================================
 
 

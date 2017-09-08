@@ -4,6 +4,9 @@
 #include <../JuceLibraryCode/JuceHeader.h>
 #include "jdHeader.h"
 #include <numeric>
+#include "../Settings.h"
+#include <iostream>
+#include <sstream>
 /*
     Currently updates everything on every change - not very efficient 
     improvement would be to allocate array of slider/nodeHandle ptrs
@@ -27,11 +30,19 @@ public:
             nh->setVisible(shouldBeVisible);
             m_curveSliders[nh->index()]->setVisible(shouldBeVisible);
         }
-        m_curveSliders.back()->setVisible(shouldBeVisible);
+        m_curveSliders.getLast()->setVisible(shouldBeVisible);
     }
     void setShouldAddHandleOnDoubleClick(bool shouldAddHandleOnDoubleClick);
     
     void sliderValueChanged (Slider* slider) override;
+    
+    void addDefaultNodes() {
+        if (!defaultNodesCreated) {
+            addHandleByValue(0, 0.02);
+            addHandleByValue(0, 0.98);
+            defaultNodesCreated = true;
+        }
+    }
     
     void mouseDown(const MouseEvent &event) override;
     
@@ -93,15 +104,22 @@ public:
         void constrainPosition() {
             auto parent = (JDEnvelopeGUI*)getParentComponent();
             const auto bounds = parent->m_envBounds;
-            if (getCentreX()  <  bounds.getX()) setCentrePosition(bounds.getX(), getCentreY());
-            if (getCentreX()  >  bounds.getRight()) setCentrePosition(bounds.getRight(), getCentreY());
-            if (getCentreY()  <  bounds.getY()) setCentrePosition(getCentreX(), bounds.getY());
-            if (getCentreY()  >  bounds.getBottom()) setCentrePosition(getCentreX(), bounds.getBottom());
+            if (getCentreX()  <  bounds.getX())
+                setCentrePosition(bounds.getX(), getCentreY());
+            
+            if (getCentreX()  >  bounds.getRight())
+                setCentrePosition(bounds.getRight(), getCentreY());
+            
+            if (getCentreY()  <  bounds.getY())
+                setCentrePosition(getCentreX(), bounds.getY());
+            
+            if (getCentreY()  >  bounds.getBottom())
+                setCentrePosition(getCentreX(), bounds.getBottom());
         }
         Point<int>  getCentre() { return getPosition() + Point<int> (getWidth(), getHeight()) * 0.5; };
         int   getCentreX() { return getPosition().getX() + getWidth() * 0.5; };
         int   getCentreY() { return getPosition().getY() + getHeight() * 0.5; };
-        void  setIndex (const int index) { m_index = index; }
+        void  setIndex ( int index) { m_index = index; }
         int   index() { return m_index; }
     private:
         bool m_isSelected = false;
@@ -109,37 +127,70 @@ public:
     };
 
     void addHandle      (Point<int> positionToAddAt) {
-        std::unique_ptr<NodeHandle> newHandle(new NodeHandle());
-        addAndMakeVisible(newHandle.get());
+        NodeHandle* newHandle = new NodeHandle();
+        addAndMakeVisible(newHandle);
         newHandle->setBounds(
                              positionToAddAt.getX() - m_halfHandleSize,
                              positionToAddAt.getY() - m_halfHandleSize,
                              m_handleSize,
                              m_handleSize);
         int indexToInsertHandle = 0;
-        for (auto  &handle : m_nodeHandles)
+        for (auto &handle : m_nodeHandles)
         {
-            if (newHandle->getBounds().getCentreX() < handle->getBounds().getCentreX())
+            if (newHandle->getBounds().getCentreX() <
+                handle->getBounds().getCentreX())
                 break;
             else
                 indexToInsertHandle++;
         }
         newHandle->setIndex(indexToInsertHandle);
-        m_nodeHandles.insert(m_nodeHandles.begin() + indexToInsertHandle, std::move(newHandle));
+        m_nodeHandles.insert(indexToInsertHandle, newHandle);
         int indexToBeginUpdating = indexToInsertHandle;
         for (auto i = (m_nodeHandles.begin()) + indexToBeginUpdating; i != m_nodeHandles.end(); i++)
             (*i)->setIndex(indexToBeginUpdating++);
 
         //Slider
-        std::unique_ptr<Slider> newSlider (makeNewCurveSlider());
-        addAndMakeVisible(newSlider.get());
+        Slider* newSlider = makeNewCurveSlider();
+        addAndMakeVisible(newSlider);
         newSlider->addListener(this);
-        m_curveSliders.insert(m_curveSliders.begin() + indexToInsertHandle, std::move(newSlider));
+        m_curveSliders.insert(indexToInsertHandle, newSlider);
         updateSliderBounds();
         
         repaint();
     }
-    void drawExpLine    (Path &path, const Line<float> line, const float curve, int step = 10)
+    void addHandleByValue(float levelDB,
+                          float normalisedTime) {
+        using namespace jd;
+        float level = linlin(dbamp(levelDB),
+                             dbamp(-60.f),
+                             dbamp(6.f),
+                             0.f,
+                             1.f);
+        level = linlin(
+                       ampdb(
+                             clip(level,
+                                  dbamp(-60.f),
+                                  dbamp(6.f)
+                                  )
+                             ),
+                       ampdb(0.001f),
+                       ampdb(1.f),
+                       0.f,
+                       1.f );
+        
+        float y = (1.f - level) * (float)getHeight();
+        float x = normalisedTime * (float)getWidth();
+    
+//        std::cout << " x: " << getHeight() << " y: " << y <<  std::endl;
+        
+        addHandle({ static_cast<int>(x),
+                    static_cast<int>(y) });
+        
+    }
+    void drawExpLine    (Path &path,
+                         const Line<float> line,
+                         const float curve,
+                         int step = 10)
     {
         if (curve != 0) {
             path.lineTo(line.getStart());
@@ -165,11 +216,12 @@ public:
     
     Rectangle<int>  m_envBounds;
     ScopedPointer<ComponentBoundsConstrainer> m_constrainer;
-    std::vector< std::unique_ptr<NodeHandle>> m_nodeHandles;
-    std::vector< std::unique_ptr<Slider>> m_curveSliders;
+    OwnedArray<NodeHandle> m_nodeHandles;
+    OwnedArray<Slider> m_curveSliders;
     const int m_handleSize { 20 };
     const int m_halfHandleSize { static_cast<int>(m_handleSize * 0.5) };
     bool m_shouldAddHandleOnDoubleClick {true};
+    bool defaultNodesCreated {false};
 };
 
 
