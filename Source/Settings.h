@@ -19,7 +19,7 @@ constexpr auto NUM_KR_DETECTORS {  NUM_DETECTORS - NUM_AR_DETECTORS };
 
 namespace util
 {
-    const int maxNumConvolvers { 7 };
+    constexpr static int maxNumConvolvers { 7 };
     const std::array<int, NUM_AR_DETECTORS> audioRateDetectors { LEVEL };
     const std::array<int, NUM_KR_DETECTORS> controlRateDetectors { PITCH,
         PITCH_CONFIDENCE,

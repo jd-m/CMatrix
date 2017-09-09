@@ -56,7 +56,7 @@ void JDEnvelopeGUI::getNewEnvelope(jd::Envelope<float> &env, float length)
         using namespace jd;
         float levelDB = linlin(level, 0.f, 1.f, dbamp(-60.f), dbamp(6.f));
         levelDB = ampdb(levelDB);
-        levelDB = linlin(levelDB, -60.f, 0.f, dbamp(-60.f), dbamp(6.f));
+        levelDB = linlin(levelDB, -60.f, 6.f, 0.f, 1.f);
         
         std::stringstream ss;
         ss << "node: " << i << " level: " << level << " levelDB: "

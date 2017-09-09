@@ -19,6 +19,7 @@
 /* IR State */
 //===================================================================
 struct IRState {
+    IRState() = default;
     IRState(int sourceSamplesPerThumbnailSample,
             AudioFormatManager* formatManagerToUse,
             AudioThumbnailCache* cacheToUse);
@@ -27,7 +28,7 @@ struct IRState {
         copyStateFrom(other);
     }
     
-    IRState& operator =(const IRState& other) {
+    IRState& operator = (const IRState& other) {
         copyStateFrom(other);
         return *this;
     }
@@ -117,15 +118,13 @@ public Button::Listener
 {
 public:
     IRWaveformSection(IRState &sourceIRState);
-    
-    //Component
+    //===================================================================
     void paint (Graphics &g) override;
     void resized () override;
-    //ChangeListener
     void changeListenerCallback(juce::ChangeBroadcaster *source) override {
         repaint();
     }
-    
+    //===================================================================
     void setEnvEditable(bool canEditEnvelope)
     {
         if (canEditEnvelope)
@@ -140,6 +139,7 @@ public:
         }
         repaint();
     }
+    //===================================================================
     
     void buttonClicked (Button* button) override;
     

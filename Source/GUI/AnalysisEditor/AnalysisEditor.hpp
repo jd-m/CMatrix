@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include "SignalDisplayUI.hpp"
 #include "AnalysisMeter.hpp"
+#include "IRSelector.hpp"
 //dbScale
 //MeterBar
 //Meter
@@ -21,12 +22,11 @@ class AnalysisEditor : public Component,
 public Slider::Listener,
 public Button::Listener,
 public ComboBoxListener,
-public ValueTree::Listener,
-public ChangeBroadcaster,
-public KeyListener
+public ChangeBroadcaster
 {
 public:
-    AnalysisEditor(Jd_cmatrixAudioProcessor& p);
+    AnalysisEditor(Jd_cmatrixAudioProcessor& p,
+                   ButtonGrid& stepSequencerSource);
 //=====================================================================
     void paint(Graphics& g) override;
     void resized() override;
@@ -37,50 +37,20 @@ public:
     //=====================================================================
     void buttonClicked(Button* button) override;
     //=====================================================================
-    void valueTreePropertyChanged(juce::ValueTree &tree,
-                                  const juce::Identifier &property) override
-    {
+    void mouseDown(const MouseEvent& e) override {
         
+        if (e.getNumberOfClicks() == 2)
+        {
+            sequencer.stepToNextEnabledValue();
+        }
     }
-    void valueTreeChildAdded (ValueTree& parentTree,
-                              ValueTree& childWhichHasBeenAdded) override {}
-    
-    void valueTreeChildRemoved (ValueTree& parentTree,
-                                ValueTree& childWhichHasBeenRemoved,
-                                int indexFromWhichChildWasRemoved) override {}
-    
-    void valueTreeChildOrderChanged (ValueTree& parentTreeWhoseChildrenHaveMoved,
-                                     int oldIndex, int newIndex) override {}
-    
-    void valueTreeParentChanged (ValueTree& treeWhoseParentHasChanged) override {}
-    //=====================================================================
-    bool keyPressed(const KeyPress &key, Component *originatingComponent) override
-    {
-        if (key.getTextCharacter() == juce_wchar{'s'}) {
-            std::cout << "YAK" << std::endl;
-            store = currentState.createCopy();
-        }
-        if (key.getTextCharacter() == 'l') {
-            
-            currentState.copyPropertiesFrom(store, nullptr);
-            for (int i = 0; i < currentState.getNumProperties(); i++)
-            {
-            }
-        }
-        if (key.getTextCharacter() == 'c') {
-            
-        }
-        if (key.getTextCharacter() == 'b') {
-            
-        }
-        return {};
-    }
-    //=====================================================================
-    
 private:
     Jd_cmatrixAudioProcessor& processor;
     OwnedArray<SignalDrawer>& waveformViewers { processor.waveformViewers };
     WaveformDisplay waveformDisplay;
+    
+    ButtonGrid& stepSequencer;
+    
     
     int activeWaveform = LEVEL;
     Array<Colour> detectorColours {
@@ -91,9 +61,16 @@ private:
         Colours::purple
     };
 
-    ValueTree currentState {"tree"};
-    ValueTree store;
-    std::array<ValueTree,4> storedStates;
+    ValueTree currentState {"Analysis"};
+    ValueTree temporaryState;
+    HashMap<String, ValueTree> storedStates;
+    
+
+    IRSequencer sequencer {
+        processor,
+        stepSequencer.storedIrStates,
+        stepSequencer
+    };
     
     ComboBox setModeBox;
     ComboBox setActiveDetector;
@@ -104,9 +81,23 @@ private:
     Slider smoothingSpeedKnob;
     Slider samplesPerPixelKnob;
     
+    ComboBox irSequenceSelectionBox;
+    ComboBox irTriggerModeBox;
+    
+    int gateTriggerCode;
+    
+    enum EnvelopeMode {
+        ONE_SHOT,
+        SUSTAIN
+    };
+    
     OwnedArray<AnalysisMeter> meters;
     
     TextButton makeAllVisibleButton;
+    
+    
+    TextButton pad;
+    Slider masterFader;
     
 };
 

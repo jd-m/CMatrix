@@ -1,8 +1,8 @@
 #include "AnalysisEditor.hpp"
 
 
-AnalysisEditor::AnalysisEditor(Jd_cmatrixAudioProcessor& p):
-processor(p) 
+AnalysisEditor::AnalysisEditor(Jd_cmatrixAudioProcessor& p, ButtonGrid& stepSequencerSource):
+processor(p) , stepSequencer(stepSequencerSource)
 {
     setOpaque(true);
     
@@ -68,14 +68,27 @@ processor(p)
     meters[PITCH]->thresholdSlider.setSkewFactor(0.125);
     meters[LEVEL]->thresholdSlider.setSkewFactor(0.5, true);
     
-    addKeyListener(this);
-    
-    currentState.addListener(this);
     //EnvDetectorParams
     currentState.setProperty("rmsSizeValue", 10.f, nullptr);
     currentState.setProperty("attackTimeValue", 10.f, nullptr);
     currentState.setProperty("releaseTime", 10.f, nullptr);
     currentState.setProperty("scalingMode", WaveformDisplay::LIN, nullptr);
+    
+    //IR SELECTION
+    addAndMakeVisible(irSequenceSelectionBox);
+    irSequenceSelectionBox.addListener(this);
+    irSequenceSelectionBox.setText("---");
+    
+    addAndMakeVisible(irTriggerModeBox);
+    irTriggerModeBox.addListener(this);
+    irTriggerModeBox.addItemList({  "exitFromBelow",
+                                    "entryToBelow",
+                                    "entryToAbove",
+                                    "exitFromAbove" }, 1);
+    irTriggerModeBox.setSelectedItemIndex(1);
+    
+    stepSequencer.sequencesComboBox.addListener(this);
+    
     
 }
 //=====================================================================
@@ -126,6 +139,11 @@ void AnalysisEditor::resized()
     
     for (auto m : meters)
         m->setBounds(metersBounds.removeFromLeft(100));
+    
+    auto irSelectionBounds = mid;
+    irSequenceSelectionBox.setBounds(irSelectionBounds.removeFromRight(120).removeFromTop(40).reduced(10));
+    irTriggerModeBox.setBounds(irSelectionBounds.removeFromTop(60).reduced(10));
+    
 }
 //=====================================================================
 void AnalysisEditor::sliderValueChanged(juce::Slider *slider)
@@ -171,5 +189,25 @@ void AnalysisEditor::comboBoxChanged(juce::ComboBox *comboBox)
         for (auto w :waveformViewers)
             w->setIsActive( j++ == (activeWaveform) );
     }
+
+    
+    if (comboBox == &stepSequencer.sequencesComboBox)
+    {
+        irSequenceSelectionBox.clear();
+        for (int i = 0; i < comboBox->getNumItems(); i++)
+        {
+            int itemID = comboBox->getItemId(i);
+            irSequenceSelectionBox.addItem(std::forward<String>(comboBox->getItemText(i)), itemID);
+        }
+    }
+    
+    //select sequence
+    if (comboBox == &irSequenceSelectionBox)
+    {
+
+        String name = comboBox->getItemText(comboBox->getSelectedItemIndex());
+        sequencer.setIRSequence(name);
+    }
+    
 }
 //=======================================================================

@@ -15,15 +15,14 @@
 #include "jdHeader.h"
 #include "../JuceLibraryCode/JuceHeader.h"
 
+template<int NumChannels>
 class SimpleConvolver {
 public:
-    SimpleConvolver () {}
-    ~SimpleConvolver () {}
-    
+   
     void prepareToPlay (double sampleRate, int samplesPerBlock) {
         
         {
-            juce::ScopedLock convolverLock(convolverMutex);
+        
             convolverHeadBlockSize = 1;
             while (convolverHeadBlockSize < static_cast<size_t>(samplesPerBlock))
             {
@@ -31,7 +30,9 @@ public:
             }
             convolverTailBlockSize = std::max(size_t(8192), 2 * convolverHeadBlockSize);
         }
-        m_processingBuffer.resize(samplesPerBlock);
+        
+        for (auto& processingBuffer : m_processingBuffers)
+            processingBuffer.resize(samplesPerBlock);
     }
     
     void loadIRFromFile (File &file, size_t fileChannel)
@@ -67,27 +68,48 @@ public:
         }
         
         {
-        ScopedLock lock { convolverMutex };
-        m_convolver.init(convolverHeadBlockSize,
+        
+        m_convolvers[fileChannel].init(convolverHeadBlockSize,
                        convolverTailBlockSize,
                        buffer.data(),
                        fileLen);
         }
     }
+    
+    void loadMultiChannelIRfromFile(File& file)
+    {
+        for(int i = 0; i < NumChannels; i++)
+            loadIRFromFile(file, i);
+    }
 
-    void processBlock (const float *inputBlock, size_t numSamples) {
-        m_convolver.process(inputBlock, m_processingBuffer.data(), numSamples);
+    void processBlock (const float **inputBlock, int numSamples) {
+        
+        for (int channelNum = 0; channelNum < NumChannels; channelNum++) {
+            m_convolvers[channelNum].process(inputBlock[channelNum], m_processingBuffers[channelNum].data(), numSamples);
+        }
     }
     
-    fftconvolver::TwoStageFFTConvolver& convolver() { return m_convolver; }
-    const float* bufferData() { return m_processingBuffer.data(); }
+    void processChannel(int channelNum, const float *inputBlock, int numSamples)
+    {
+        m_convolvers[channelNum].process(inputBlock, m_processingBuffers[channelNum].data(), numSamples);
+    }
     
-    mutable CriticalSection convolverMutex;
+    void crossConvolve(const float **inputBlock, int numSamples){
+        //    
+        //  [L 0 1]
+        //  [R 1 0]
+    }
+
+    const float* bufferDataAt(int channelNum) { return m_processingBuffers[channelNum].data(); }
+    
+    
     size_t convolverHeadBlockSize;
     size_t convolverTailBlockSize;
-    
-    fftconvolver::TwoStageFFTConvolver m_convolver;
-    std::vector<float> m_processingBuffer;
+    String name = "";//Cannot be copied
+    std::array<fftconvolver::TwoStageFFTConvolver, NumChannels> m_convolvers;
+    std::array<std::vector<float>, NumChannels> m_processingBuffers;
 };
+
+//====================================================================
 
 #endif /* SimpleConvolver_hpp */

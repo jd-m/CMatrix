@@ -96,8 +96,6 @@ void Jd_cmatrixAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     "\ncontrolBlockSize: " << controlBlockSize <<
     "\nloopsPerBlock: " << loopsPerBlock <<
     "\ncontrolRate: "  << controlRate << std::endl;
-    //Processors
-    convolver.prepareToPlay(sampleRate, samplesPerBlock);
     
     for (auto i : audioRateDetectors) {
         auto& d = detectors[i];
@@ -117,26 +115,35 @@ void Jd_cmatrixAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     detectors[PITCH].setOutputScalingFunc(jd::hzmidi<float>);
     detectors[PITCH].setLimits(freqScale.front(), freqScale.back());
     detectors[PITCH].shouldConvertOutput = true;
+    detectors[PITCH].shouldConvertInput = false;
     
-    detectors[LEVEL].setInputScalingFunc(jd::ampdb<float>);
+    
     detectors[LEVEL].setOutputScalingFunc(jd::dbamp<float>);
     detectors[LEVEL].setLimits(logAmpScale.front(), logAmpScale.back());
+    detectors[LEVEL].setInputScalingFunc([] (float x){
+        return jd::ampdb(jd::clip(x,
+                                  jd::dbamp(-60.f),
+                                  jd::dbamp(6.f)));
+    });
     detectors[LEVEL].shouldConvertInput = true;
     
     for (int i = 0; i < NUM_DETECTORS; i++) {
         auto w = new SignalDrawer();
-        w->setSamplesToAverage(64);
+        w->setSamplesToAverage(512);
         waveformViewers.add(w);
     }
-
     
     //Analysis
     analysisChain.init(sampleRate, sampleRate, controlBlockSize);
 
     mixedBuf.resize(samplesPerBlock);
+    
+    wetBuffer.setSize(2, samplesPerBlock);
+    dryBuffer.setSize(2, samplesPerBlock);
+
     //Testing
     imp.init(sampleRate);
-    imp.setFrequency(1.);
+    imp.setFrequency(0.5f);
     
     sin.init(sampleRate);
     sin.setFrequency(0.125f);
@@ -181,12 +188,13 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
     const int numOutputChannels = getTotalNumOutputChannels();
     const int numSamples = buffer.getNumSamples();
     
-    auto inputs = buffer.getArrayOfWritePointers();
+    auto inputs = buffer.getArrayOfReadPointers();
     auto outputs = buffer.getArrayOfWritePointers();
 
     for (int i = numInputChannels; i < numOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
+    mixedBuf.clear();
     for (int i = 0; i < numSamples; i++) {
         float sample = 0.f;
         for (int chan = 0; chan < numInputChannels; chan++)
@@ -207,24 +215,35 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
                controlBlockSize * sizeof(float));
         ac.computeBlock();
         //ControlLoop
-        detectors[PITCH].setInput
-            (ac.pitchYinFFT.output<0>());
-        
-        detectors[PITCH_CONFIDENCE].setInput
-            (ac.pitchYinFFT.output<1>());
-        
-        detectors[PITCH_SALIENCE].setInput
-            (ac.pitchSalience.output<0>());
-        
-        detectors[INHARMONICITY].setInput
-            (ac.inharmonicity.output<0>());
+//        detectors[PITCH].setInput
+//            (ac.pitchYinFFT.output<0>());
+//        
+//        detectors[PITCH_CONFIDENCE].setInput
+//            (ac.pitchYinFFT.output<1>());
+//        
+//        detectors[PITCH_SALIENCE].setInput
+//            (ac.pitchSalience.output<0>());
+//        
+//        detectors[INHARMONICITY].setInput
+//            (ac.inharmonicity.output<0>());
         
         //AudioLoop
         for (int i = 0; i < controlBlockSize; i++)
         {
+            detectors[PITCH].setInput
+            (ac.pitchYinFFT.output<0>());
+            
+            detectors[PITCH_CONFIDENCE].setInput
+            (ac.pitchYinFFT.output<1>());
+            
+            detectors[PITCH_SALIENCE].setInput
+            (ac.pitchSalience.output<0>());
+            
+            detectors[INHARMONICITY].setInput
+            (ac.inharmonicity.output<0>());
             
             detectors[LEVEL].setInput(mixedBuf[bufOffset + i]);
-            
+//            waveformViewers[PITCH_SALIENCE]->addSample(jd::clip(detectors[PITCH_SALIENCE].normalisedScaledOutput(),0.f,1.f));
             for (int d_i = 0; d_i < NUM_DETECTORS; d_i++) {
                 detectors[d_i].applySmoothing();
                 waveformViewers[d_i]->addSample(jd::clip(detectors[d_i].normalisedScaledOutput(),0.f,1.f));
@@ -233,12 +252,34 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
 
         remaining -= numToCopy;
     }
-    for (int chan = 0; chan < numOutputChannels; chan++) {
-        for (int i = 0; i < numSamples; i++) {
+    //Convolution
+    
+//    for (auto convolver : convolvers)
+//    {
+//        convolver->processChannel(0, &mixedBuf[0], numSamples);
         
-            outputs[chan][i] = 0.;
-        }
+////
+//        for (int channelNum = 0; channelNum < 2; channelNum++) {
+//            convolver->processChannel(channelNum, &mixedBuf[0], numSamples);
+//            for (int i = 0; i < numSamples; i++) {
+//                wetBuffer.getWritePointer(channelNum)[i] = convolver->bufferDataAt(channelNum)[i];
+//                }
+//            }
+//    }
+    
+    //Convolution
+    if (detectors.allEnabledDetectorsWithinRange())
+    {
+        
+        
     }
+    
+//    for (int chan = 0; chan < numOutputChannels; chan++) {
+        for (int i = 0; i < numSamples; i++) {
+//            outputs[0][i] = wetBuffer.getReadPointer(0)[i] + inputs[0][i] * 0.2;
+//            outputs[1][i] = wetBuffer.getReadPointer(1)[i] + inputs[1][i] * 0.2;
+        }
+//    }
     
 }
 

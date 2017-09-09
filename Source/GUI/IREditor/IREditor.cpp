@@ -2,7 +2,8 @@
 //===================================================================
 /*    IR EDITOR      */
 //===================================================================
-IREditor::IREditor()
+IREditor::IREditor(Jd_cmatrixAudioProcessor& p):
+processor(p)
 {
     formatManager.registerBasicFormats();
     
@@ -38,6 +39,13 @@ IREditor::IREditor()
     addAndMakeVisible(irInfosComboBox);
     irInfosComboBox.addListener(this);
     
+    if (!irClipDir.exists())
+        irClipDir.createDirectory();
+    
+}
+IREditor::~IREditor()
+{
+    irClipDir.deleteRecursively();
 }
 //===================================================================
 void IREditor::paint(Graphics& g)
@@ -75,8 +83,7 @@ void IREditor::resized()
     irInfosComboBox.setBounds(irOptionColumn.removeFromTop(buttonHeight).reduced(0, 2));
     
     auto bottom = r;
-    buttonGrid.setBounds(r.removeFromTop(200).
-                         removeFromRight(900)
+    buttonGrid.setBounds(r.removeFromTop(200)
                          .reduced(10,10)    );
 }
 //===================================================================
@@ -94,61 +101,149 @@ void IREditor::comboBoxChanged(juce::ComboBox *comboBox)
 //===================================================================
 void IREditor::storeIrInfo()
 {
-    auto name = irNameLabel.getText();
     
-    bool nameAlreadyUsed = false;
+    waveformSection.makePatternElementInfoEnvelope();
+    
+    auto newIRName = irNameLabel.getText();
+    
     int newUID = 1;
-    for (const auto& info: irInfos) {
-        nameAlreadyUsed = (name == info.name);
+    for (const auto& info: irInfos)
         if (info.uid == newUID) newUID++;
-    }
     
-    if (!nameAlreadyUsed) {
+    if (!irInfos.contains(newIRName))
+    {
         IRState newIrInfo (currentIrInfo);
+        newIrInfo.copyStateFrom(currentIrInfo);
         newIrInfo.uid = newUID;
-        newIrInfo.name = name;
-        irInfos.add(newIrInfo);
-        irInfosComboBox.addItem(name, newUID);
-        buttonGrid.addItemToIRComboBoxes(name, newUID);
+        newIrInfo.name = newIRName;
+        irInfos.set(newIRName, std::forward<IRState>(newIrInfo));
+        irInfosComboBox.addItem(newIRName, newUID);
+        buttonGrid.addItemToIRComboBoxes(newIRName, newUID);
+        
+        std::cout << newIRName << std::endl;
+        std::cout << irInfos[newIRName].reader->numChannels << std::endl;
+        std::cout << irInfos[newIRName].lengthSamples() << std::endl;
+        
+        File kernelFile = writeIRClipToFile(newIRName);
+        {
+        ScopedLock {processor.convolverMutex};
+        
+        auto newConvolver = new SimpleConvolver<2> {};
+        newConvolver->prepareToPlay (processor.getSampleRate(), processor.getBlockSize());
+        newConvolver->loadMultiChannelIRfromFile(kernelFile);
+        newConvolver->name = newIRName;
+        processor.convolvers.addIfNotAlreadyThere(newConvolver);
+        }
     }
 
 }
 //===================================================================
 void IREditor::setCurrentIR()
 {
-    int selectedItemUID = irInfosComboBox.getSelectedId();
-    for (const auto& info : irInfos)
-        if (info.uid == selectedItemUID) {
-            currentIrInfo.copyStateFrom(info);
-            currentIrInfo.thumbnail->sendChangeMessage();
-            sendChangeMessage();
-        }
+    if (irInfos.contains(irInfosComboBox.getText()))
+    {
+        auto info = irInfos[irInfosComboBox.getText()];
+        currentIrInfo.copyStateFrom(info);
+        currentIrInfo.thumbnail->sendChangeMessage();
+        sendChangeMessage();
+    }
 }
 //===================================================================
 void IREditor::removeIR()
 {
     
-    int selectedIrInfoUID = irInfosComboBox.getSelectedId();
-
-    int index = 0;
-    bool removedIr = false;
-    for (const auto& info : irInfos)
-    {
-        if(info.uid == selectedIrInfoUID)
-        {
-            irInfos.remove(index);
+    if (irInfos.contains(irInfosComboBox.getText())) {
+        
+            //delete
+            irInfos.remove(irInfosComboBox.getText());
             irInfosComboBox.clear();
             buttonGrid.clearIRComboBoxes();
-            removedIr = true;
-            break;
-        }
-        index++;
-    }
-    if (removedIr)
+        
         for (const auto& info : irInfos) {
             irInfosComboBox.addItem(info.name,
                                     info.uid);
-            buttonGrid.addItemToIRComboBoxes(info.name, info.uid);
+            buttonGrid.addItemToIRComboBoxes(info.name,
+                                             info.uid);
         }
+
+    }
+}
+//===================================================================
+File IREditor::writeIRClipToFile(String irInfoName)
+{
+    if (irInfos.contains(irInfoName))
+    {
+        auto selectedIrClip = irInfos[irInfoName];
+        
+        std::cout << " numSamples " << selectedIrClip.lengthSamples()
+        << " duration: " << selectedIrClip.totalDuration()
+        << " numChannels: "
+        << selectedIrClip.reader->numChannels << std::endl;
+        AudioSampleBuffer irClipBuf (selectedIrClip.reader->numChannels,
+                                     selectedIrClip.lengthSamples());
+        
+        File outputFile = irClipDir.getNonexistentChildFile(selectedIrClip.name, ".wav", true);
+//        File outputFile ("~/Desktop/test.wav");
+        
+        if (!outputFile.exists())
+            outputFile.create();
+
+        FileOutputStream *ostream = outputFile.createOutputStream();
+        ScopedPointer<WavAudioFormat> wavFormat = new WavAudioFormat();
+        AudioFormatReader* reader = selectedIrClip.reader;
+        
+        ScopedPointer<AudioFormatWriter> writer =
+            wavFormat->createWriterFor(ostream,
+                                       reader->sampleRate,
+                                       reader->numChannels,
+                                       reader->bitsPerSample,
+                                       StringPairArray(),0);
+        
+        const size_t loadBlockSize = 8192;
+        
+        const size_t totalSamplesToCopy = selectedIrClip.lengthSamples();
+        size_t remainingToCopy = totalSamplesToCopy;
+        writer->flush();
+        
+        AudioSampleBuffer tempBuf (reader->numChannels,
+                                   loadBlockSize);
+        
+        
+        
+        selectedIrClip.env.setIncrementRate(selectedIrClip.reader->sampleRate);
+        selectedIrClip.env.trigger();
+        
+
+        for (int i = 0; i < selectedIrClip.env.times.size(); i++)
+        {
+            auto t = selectedIrClip.env.times[i];
+            auto l = selectedIrClip.env.levels[i];
+            auto c = selectedIrClip.env.curves[i];
+            std::cout << "level: " << l << " time:  " << t
+            << " curve:  " <<  c << std::endl;
+        }
+        
+        while (remainingToCopy > 0) {
+            size_t numToCopy = std::min(remainingToCopy, loadBlockSize);
+            size_t readerIndex = totalSamplesToCopy - remainingToCopy + selectedIrClip.startSample();
+            
+            selectedIrClip.reader->read(&tempBuf, 0, numToCopy, readerIndex, true, true);
+            
+            
+            for (int i = 0; i < numToCopy; i++) {
+                selectedIrClip.env.updateAction();
+                
+                const float logScaledEnvGain = selectedIrClip.env.value();
+
+                for (int chan = 0; chan <  reader->numChannels; chan++)
+                    tempBuf.getWritePointer(chan)[i] *= logScaledEnvGain;
+            }
     
+            writer->writeFromAudioSampleBuffer(tempBuf, 0, numToCopy);
+            remainingToCopy -= numToCopy;
+        }
+
+        return outputFile;
+    };
+    return File::nonexistent;
 }

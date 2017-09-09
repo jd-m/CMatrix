@@ -1,15 +1,7 @@
-//
-//  ButtonGrid.cpp
-//  jd_CMatrix
-//
-//  Created by Jaiden Muschett on 07/09/2017.
-//
-//
-
 #include "IrSequencer.hpp"
 
 //============================================================
-ButtonGrid::ButtonGrid(Array<IRState>& sourceIRStates):
+ButtonGrid::ButtonGrid(HashMap<String, IRState>& sourceIRStates):
 storedIrStates(sourceIRStates)
 {
     for (int i = 0; i < numElements; ++i)
@@ -17,6 +9,7 @@ storedIrStates(sourceIRStates)
         auto newToggleButton = new ToggleButton ();
         newToggleButton->setLookAndFeel(&lookAndFeel);
         newToggleButton->addListener(this);
+        newToggleButton->getToggleStateValue().addListener(this);
         auto name = "ButtonCell-" + String(i);
         newToggleButton->setName(name);
         addAndMakeVisible(newToggleButton);
@@ -27,13 +20,12 @@ storedIrStates(sourceIRStates)
         auto newIRComboBox = new ComboBox();
         newIRComboBox->addListener(this);
         newIRComboBox->setName("IRComboBox_" + String(row));
+        newIRComboBox->getSelectedIdAsValue().addListener(this);
         addAndMakeVisible(newIRComboBox);
         newIRComboBox->setTextWhenNoChoicesAvailable("ir -" + String(row+1));
         irComboBoxes.add(newIRComboBox);
     }
 
-    setParametersToReferToValueTreeProperties();
-    
     Font buttonFont("courier",12,0);
     addAndMakeVisible(storeSequenceButton);
     storeSequenceButton.setButtonText("add seq");
@@ -60,15 +52,20 @@ storedIrStates(sourceIRStates)
     clearCurrentSequenceButton.addListener(this);
     
     addAndMakeVisible(sequenceNameLabel);
-    sequenceNameLabel.setText("name", dontSendNotification);
+    sequenceNameLabel.setText("default", dontSendNotification);
     sequenceNameLabel.setEditable(true);
     sequenceNameLabel.setFont(buttonFont);
     sequenceNameLabel.setJustificationType(Justification::centred);
     
     addAndMakeVisible(sequencesComboBox);
     sequencesComboBox.setText(" --- ");
+    sequencesComboBox.addListener(this);
     
-    addKeyListener(this);
+    setParametersToReferToValueTreeProperties();
+    currentSequenceState.setProperty("name", "default", nullptr);
+    currentSequenceState.setProperty("uid", "-1", nullptr);
+    storeCurrentSequence();
+    
 
 }
 //============================================================
@@ -110,6 +107,7 @@ void ButtonGrid::resized()
     sequenceNameLabel.setBounds(buttonColumnBounds.removeFromTop(25));
     auto storeLoadSequenceBounds = buttonColumnBounds.removeFromTop(25);
     storeSequenceButton.setBounds(storeLoadSequenceBounds.removeFromLeft(50));
+    overwriteSequenceButton.setBounds(storeLoadSequenceBounds);
     setSequenceButton.setBounds(buttonColumnBounds.removeFromTop(25));
     removeSequenceButton.setBounds(buttonColumnBounds.removeFromTop(25));
     sequencesComboBox.setBounds(buttonColumnBounds.removeFromTop(25));
@@ -145,11 +143,14 @@ void ButtonGrid::buttonClicked(Button* clickedButton)
                 bool tempButtonState = clickedButton->getToggleState();
                 deselectAllCellsInColumn(column);
                 buttonCells[n]->setToggleState(tempButtonState, dontSendNotification);
+                
+                break;
             }
         }
     }
     
     if (clickedButton == &storeSequenceButton) storeCurrentSequence();
+    if (clickedButton == &overwriteSequenceButton) overwriteCurrentSequence();
     if (clickedButton == &removeSequenceButton) removeCurrentSequence();
     if (clickedButton == &setSequenceButton) setCurrentSequence();
     if (clickedButton == &clearCurrentSequenceButton) clearCurrentSequence();
@@ -159,20 +160,44 @@ void ButtonGrid::buttonClicked(Button* clickedButton)
 //============================================================
 void ButtonGrid::comboBoxChanged(juce::ComboBox *changedComboBox)
 {
-    for (auto irComboBox : irComboBoxes)
-        if (changedComboBox == irComboBox) {
-            int selectedUID = irComboBox->getSelectedId();
-            
-            int index = 0;
-            for (auto storedState : storedIrStates) {
-                if (storedState.uid == selectedUID) {
+    if (changedComboBox == &sequencesComboBox) {
+        String comboBoxText = changedComboBox->getText();
+        
+        if (irSequences.contains(comboBoxText))
+            waitingSequenceState = sequenceStates[comboBoxText];
+    }
+}
+//============================================================
+void ButtonGrid::valueChanged(juce::Value &changedValue)
+{
+    for (int column = 0; column < numColumns; column++) {
+        for (int row = 0; row < numRows; row++) {
+            int n = column * numRows + row;
+            if (changedValue == buttonCells[n]->getToggleStateValue()) {
+                
+                if (irSequences.contains(getCurrentStateName())) {
+                    auto& irElement = irSequences[getCurrentStateName()]
+                    .getReference(column);
                     
-                    break;
+                    int selectedRowIndex = getActiveRowInColumn(column);
+
+                    irElement.isEnabled = (bool)changedValue.getValue();
+                    
+                    int irClipIndex = 0;
+                    if (irElement.isEnabled) {
+//                        std::cout << getCurrentStateName() << std::endl;
+                        irClipIndex = irComboBoxes[selectedRowIndex]->getSelectedId();
+                        
+                        irElement.irClipName = irComboBoxes[selectedRowIndex]->getItemText(irClipIndex);
+                    };
+                
+                    irElement.irClipindex = irClipIndex;
                 }
-                index++;
+                
+                break;
             }
-            
         }
+    }
     
 }
 //============================================================
@@ -202,9 +227,12 @@ void ButtonGrid::storeCurrentSequence()
 {
     String newSequenceName = sequenceNameLabel.getText();
     int newUID = 1;
-    for (const auto& sequenceState : sequenceStates)
-        if ((int)sequenceState.getProperty("uid") == newUID) newUID++;
-    
+    for (int i = 0; i < sequencesComboBox.getNumItems(); i++) {
+        if (sequencesComboBox.getItemId(i) == newUID) {
+            newUID++;
+        }
+    }
+
     if (!sequenceStates.contains(newSequenceName))
     {
         std::cout << "creating new - uid: " << newUID << " name " << newSequenceName << std::endl;
@@ -216,7 +244,7 @@ void ButtonGrid::storeCurrentSequence()
         sequenceStates.set(newSequenceName, std::move(newSequenceState));
         sequencesComboBox.addItem(newSequenceName, newUID);
 
-        irSequences[newSequenceName] = std::move(generateIRSequenceFromCurrentState());
+        irSequences.set(newSequenceName,std::move(generateIRSequenceFromCurrentState()));
     }
 }
 void ButtonGrid::overwriteCurrentSequence()
@@ -231,53 +259,38 @@ void ButtonGrid::overwriteCurrentSequence()
     }
   
         std::cout << "creating new - uid: " << newUID << " name " << newSequenceName << std::endl;
-        ValueTree newSequenceState;
-        newSequenceState = currentSequenceState.createCopy();
+    ValueTree newSequenceState = std::move(currentSequenceState.createCopy());
         newSequenceState.setProperty("uid", newUID, nullptr);
         newSequenceState.setProperty("name", newSequenceName, nullptr);
         
         sequenceStates.set(newSequenceName, newSequenceState);
         sequencesComboBox.addItem(newSequenceName, newUID);
         
-        irSequences[newSequenceName] = std::move(generateIRSequenceFromCurrentState());
+        irSequences.set(newSequenceName, std::move(generateIRSequenceFromCurrentState()));
     
 }
 void ButtonGrid::setCurrentSequence()
 {
-//    int selectedItemUID = sequencesComboBox.getSelectedId();
-    String selectedItemName = sequencesComboBox.getText();
-//    for (const auto& sequenceState : sequenceStates)
-//        if ((int)sequenceState.getProperty("uid") == selectedItemUID) {
-            currentSequenceState.copyPropertiesFrom(sequenceStates[selectedItemName], nullptr);
-//        }
+//    String selectedItemName = sequencesComboBox.getText();
+//    currentSequenceState.copyPropertiesFrom(sequenceStates[selectedItemName], nullptr);
+    
+    currentSequenceState.copyPropertiesFrom(waitingSequenceState, nullptr);
 }
 void ButtonGrid::removeCurrentSequence()
 {
-    int selectedStateUID = sequencesComboBox.getSelectedId();
-    
-    int index = 0;
-    bool removedIr = false;
-    for (const auto& sequenceState : sequenceStates)
+//    String
+    if (sequenceStates.contains(getCurrentStateName()))
     {
-        if((int)sequenceState.getProperty("uid") == selectedStateUID)
-        {
-            String name = sequenceState.getProperty("name").toString();
-//            auto currentSequenceIndex = irSequences.find(name);
-//            if (currentSequenceIndex != irSequences.end())
-//                irSequences.erase(currentSequenceIndex);
-            irSequences.remove(name);
-            sequenceStates.remove(name);
-            sequencesComboBox.clear();
-            removedIr = true;
-            break;
-        }
-        index++;
-    }
-    if (removedIr)
+        irSequences.remove(getCurrentStateName());
+        sequenceStates.remove(getCurrentStateName());
+        sequencesComboBox.clear();
+        
         for (const auto& sequenceState : sequenceStates) {
             sequencesComboBox.addItem(sequenceState.getProperty("name").toString(),
-                                    (int)sequenceState.getProperty("uid"));
+                                      (int)sequenceState.getProperty("uid"));
         }
+    }
+
 }
 void ButtonGrid::clearCurrentSequence()
 {
@@ -314,6 +327,10 @@ void ButtonGrid::setParametersToReferToValueTreeProperties()
     }
     
 }
+String ButtonGrid::getCurrentStateName()
+{
+    return currentSequenceState.getProperty("name").toString();
+}
 //============================================================
 IRSequence ButtonGrid::generateIRSequenceFromCurrentState()
 {
@@ -326,13 +343,13 @@ IRSequence ButtonGrid::generateIRSequenceFromCurrentState()
         
         bool isEnabled = (selectedRowIndex > -1);
         int irClipIndex = 0;
+        String clipName;
         if (isEnabled) {
             irClipIndex = irComboBoxes[selectedRowIndex]->getSelectedId();
+            clipName = irComboBoxes[selectedRowIndex]->getItemText(irClipIndex);
         };
         
-//        std::cout << "columnIndex: " << columnIndex << " selectedRow: " << selectedRowIndex << " clipID: " << irClipIndex<< std::endl;
-        
-        newIrSequence.add(std::forward<IRSequenceElement>({ columnIndex, irClipIndex, isEnabled }));
+        newIrSequence.add(std::forward<IRSequenceElement>({ columnIndex, irClipIndex, clipName, isEnabled }));
     }
     
     return newIrSequence;
@@ -388,3 +405,9 @@ void ButtonGrid::deselectAllCellsInColumn(int columnIndex)
         button->setToggleState(false, dontSendNotification);
     });
 }
+
+
+
+
+
+

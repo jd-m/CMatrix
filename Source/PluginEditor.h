@@ -38,12 +38,9 @@ private:
 
     Jd_cmatrixAudioProcessor& processor;
     
-
     TabbedComponent tabbedWindow {TabbedButtonBar::Orientation::TabsAtTop};
-    
-    AnalysisEditor analysisEditor { processor };
-    IREditor irEditor;
-    
+    IREditor irEditor { processor };
+    AnalysisEditor analysisEditor { processor, irEditor.buttonGrid};
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Jd_cmatrixAudioProcessorEditor)
 };
 

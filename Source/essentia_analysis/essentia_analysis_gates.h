@@ -61,10 +61,11 @@ struct DetectorUnit {
     }
     //===============================================================
     void setInput(float inputSample) {
+        using namespace jd;
         if (isEnabled) {
             float envelope = rmsEnvelope.processedSample(inputSample);
             output = shouldConvertInput ? scaleInput(envelope) : envelope;
-            rangeChecker.checkThreshold(output);
+            gateCode = rangeChecker.checkThreshold(output);
             smoothedValue.setTarget(output);
             smoothedValue.updateTarget();
         } else {
@@ -113,6 +114,11 @@ struct DetectorUnit {
         return rangeChecker.thresholds[0] < output &&
         output < rangeChecker.thresholds[1];
     }
+    int getGateCode ()
+    {
+        return gateCode;
+    }
+    
     //===============================================================
     template<class Func>
     void performOnEnvelope(Func funcToPerform)
@@ -137,6 +143,7 @@ struct DetectorUnit {
     float output {0};
     bool shouldConvertInput {false};
     bool shouldConvertOutput {false};
+    int gateCode {-1};
 };
 
 class DetectorChain {

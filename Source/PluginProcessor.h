@@ -66,23 +66,28 @@ public:
     
     std::vector<float> mixedBuf;
     
+    AudioSampleBuffer wetBuffer;
+    
+    AudioSampleBuffer dryBuffer;
+    
     int controlBlockSize {0};
     int loopsPerBlock { 8 };
 
     //PROCESSOR
-    SimpleConvolver convolver;
+//    SimpleConvolver<2> convolver;
+//    SimpleConvolver<2> convolverR;
+    
+    mutable CriticalSection convolverMutex;
+    
+    OwnedArray<SimpleConvolver<2>> convolvers;
+    jd::Envelope<float> convolverEnvelope;
+    bool convolverSwitch {false};
     
     RangeDetector gate;
     //AnalysisChain
     AnalyserChain analysisChain;
-    //FOR-GUI
-//    Detectors SOLO { LEVEL };
     //DEV
-    /* DetectorChains*/
-//    std::array<DetectorUnit, NUM_DETECTORS> detectors;
     DetectorChain detectors;
-    int SOLO { LEVEL };
-//    std::vector<float>& meterInputs { analysisChain.outputs };
     
     volatile double dbg_meter = 0.;
     jd::Impulse<float> imp;
