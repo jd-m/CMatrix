@@ -29,7 +29,7 @@ Jd_cmatrixAudioProcessorEditor::Jd_cmatrixAudioProcessorEditor (Jd_cmatrixAudioP
     setSize (800, 750);
     setOpaque(true);
     
-    setInterceptsMouseClicks(true, true);
+//    setInterceptsMouseClicks(true, true);
 }
 
 Jd_cmatrixAudioProcessorEditor::~Jd_cmatrixAudioProcessorEditor()
@@ -55,7 +55,7 @@ void Jd_cmatrixAudioProcessorEditor::sliderValueChanged(juce::Slider *slider)
 void Jd_cmatrixAudioProcessorEditor::timerCallback()
 {
     
-    std::stringstream ss;
+//    std::stringstream ss;
 //    std::cout <<  << std::endl;
 //    int i = 0;
 //    for (auto& d : processor.detectors.detectors)
@@ -63,10 +63,10 @@ void Jd_cmatrixAudioProcessorEditor::timerCallback()
 //        ss << "detector: " << i++ << " isWithinRange: " << d.isWithinRange()
 //        << " low: " << d.rangeChecker.thresholds[0] << " upper: " << d.rangeChecker.thresholds[1] << " output: " << d.output << "\n";
 //    }
-//    
-//    std::cout << " dbg: " << processor.dbg_meter << " " << ss.str() << std::endl;
-    
+//
+//    std::cout << ss.str() << std::endl;
+
 //    if (processor.detectors[PITCH_SALIENCE].getGateCode() > -1)
 //        std::cout << processor.detectors[LEVEL].getGateCode() << std::endl;
-    repaint();
+//    repaint();
 }

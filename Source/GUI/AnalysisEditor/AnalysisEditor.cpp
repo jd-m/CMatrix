@@ -23,43 +23,8 @@ processor(p)
                                         "Log Freq (Hz)" }, 1);
     
     addAndMakeVisible(setActiveDetector);
-    setActiveDetector.addItemList({"level", "pitch", "pitch confidence", "pitch_salnce", "inharmoncity" }, 1);
+    setActiveDetector.addItemList({"level", "pitch", "pitch confidence", "pitch_salnce", "inharmoncity" , "all"}, 1);
     setActiveDetector.addListener(this);
-    
-    //ENV ATTACK
-    addAndMakeVisible(attackTimeKnob);
-    attackTimeKnob.addListener(this);
-    attackTimeKnob.setSliderStyle(Slider::RotaryVerticalDrag);
-    attackTimeKnob.setTextBoxStyle(Slider::TextBoxBelow, false, 40, 20);
-    attackTimeKnob.setRange(0.001, 1.0);
-    
-    //RMS WINDOW SIZE
-    addAndMakeVisible(releaseTimeKnob);
-    releaseTimeKnob.addListener(this);
-    releaseTimeKnob.setSliderStyle(Slider::RotaryVerticalDrag);
-    releaseTimeKnob.setTextBoxStyle(Slider::TextBoxBelow, false, 40, 20);
-    releaseTimeKnob.setRange(0.001, 1.0);
-    
-    //RMS WINDOW SIZE
-    addAndMakeVisible(rmsKnob);
-    rmsKnob.addListener(this);
-    rmsKnob.setSliderStyle(Slider::RotaryVerticalDrag);
-    rmsKnob.setTextBoxStyle(Slider::TextBoxBelow, false, 40, 20);
-    rmsKnob.setRange(1, 1000);
-    
-    //Smoothing Speed
-    addAndMakeVisible(smoothingSpeedKnob);
-    smoothingSpeedKnob.addListener(this);
-    smoothingSpeedKnob.setSliderStyle(Slider::RotaryVerticalDrag);
-    smoothingSpeedKnob.setTextBoxStyle(Slider::TextBoxBelow, false, 40, 20);
-    smoothingSpeedKnob.setRange(0.01, 2.);
-    
-    //Smoothing Speed
-    addAndMakeVisible(samplesPerPixelKnob);
-    samplesPerPixelKnob.addListener(this);
-    samplesPerPixelKnob.setSliderStyle(Slider::RotaryVerticalDrag);
-    samplesPerPixelKnob.setTextBoxStyle(Slider::TextBoxBelow, false, 40, 20);
-    samplesPerPixelKnob.setRange(32, 512);
     
     //ANALYSIS METERS
     
@@ -71,9 +36,52 @@ processor(p)
         m->thresholdSlider.setRange(d.limits.lower, d.limits.upper);
     
         meters.add(m);
-
         
-        meterEnvelopeModes.set(i, oneShot);
+        //ENV ATTACK
+        auto newAttackTimeKnob = new Slider();
+        addChildComponent(newAttackTimeKnob);
+        newAttackTimeKnob->addListener(this);
+        newAttackTimeKnob->setSliderStyle(Slider::RotaryHorizontalVerticalDrag);
+        newAttackTimeKnob->setTextBoxStyle(Slider::TextBoxBelow, false, 40, 20);
+        newAttackTimeKnob->setRange(0.001, 0.5);
+        attackTimeKnobs.add(newAttackTimeKnob);
+        
+        //RMS WINDOW SIZE
+        auto newReleaseTimeKnob = new Slider();
+        addChildComponent(newReleaseTimeKnob);
+        newReleaseTimeKnob->addListener(this);
+        newReleaseTimeKnob->setSliderStyle(Slider::RotaryHorizontalVerticalDrag);
+        newReleaseTimeKnob->setTextBoxStyle(Slider::TextBoxBelow, false, 40, 20);
+        newReleaseTimeKnob->setRange(0.001, 0.5);
+        releaseTimeKnobs.add(newReleaseTimeKnob);
+        
+        //RMS WINDOW SIZE
+        auto newRmsSizeKnob = new Slider();
+        addChildComponent(newRmsSizeKnob);
+        newRmsSizeKnob->addListener(this);
+        newRmsSizeKnob->setSliderStyle(Slider::RotaryHorizontalVerticalDrag);
+        newRmsSizeKnob->setTextBoxStyle(Slider::TextBoxBelow, false, 40, 20);
+        newRmsSizeKnob->setRange(1, 500);
+        rmsKnobs.add(newRmsSizeKnob);
+        
+        //Smoothing Speed
+        auto newSmoothingSpeedKnob = new Slider();
+        addChildComponent(newSmoothingSpeedKnob);
+        newSmoothingSpeedKnob->addListener(this);
+        newSmoothingSpeedKnob->setSliderStyle(Slider::RotaryHorizontalVerticalDrag);
+        newSmoothingSpeedKnob->setTextBoxStyle(Slider::TextBoxBelow, false, 40, 20);
+        newSmoothingSpeedKnob->setRange(0.001, 0.5);
+        smoothingSpeedKnobs.add(newSmoothingSpeedKnob);
+        
+        //Smoothing Speed
+        auto newSamplesPerPixelKnob = new Slider();
+        addChildComponent(newSamplesPerPixelKnob);
+        newSamplesPerPixelKnob->addListener(this);
+        newSamplesPerPixelKnob->setSliderStyle(Slider::RotaryHorizontalVerticalDrag);
+        newSamplesPerPixelKnob->setTextBoxStyle(Slider::TextBoxBelow, false, 40, 20);
+        newSamplesPerPixelKnob->setRange(32, 512);
+        samplesPerPixelKnobs.add(newSamplesPerPixelKnob);
+    
         
         auto meterIRTriggerModeBox = new ComboBox();
         addAndMakeVisible(meterIRTriggerModeBox);
@@ -84,11 +92,12 @@ processor(p)
         
         meterIRTriggerModeBoxes.add(meterIRTriggerModeBox);
         
-        auto meterIRSelectionBox = new ComboBox();
-        addAndMakeVisible(meterIRSelectionBox);
-        meterIRSelectionBox->setText("---");
-        meterIRSelectionBox->addListener(this);
-        meterIRSelectionBoxes.add(meterIRSelectionBox);
+        auto newShouldInvertEnabledRangeComboBox = new ComboBox();
+        addAndMakeVisible(newShouldInvertEnabledRangeComboBox);
+        newShouldInvertEnabledRangeComboBox->addItemList({"inside","outside"}, 1);
+        newShouldInvertEnabledRangeComboBox->setSelectedId(1);
+        newShouldInvertEnabledRangeComboBox->addListener(this);
+        shouldInvertEnabledbRangeComboBoxes.add(newShouldInvertEnabledRangeComboBox);
         
         auto setEnvelopeModeBox = new ComboBox();
         addAndMakeVisible(setEnvelopeModeBox);
@@ -97,20 +106,66 @@ processor(p)
         setEnvelopeModeBox->setSelectedId(1);
         setEnvelopeModeBoxes.add(setEnvelopeModeBox);
         
-        
         auto newLoadIRButton = new TextButton();
         newLoadIRButton->setButtonText("load ir");
         newLoadIRButton->addListener(this);
         addAndMakeVisible(newLoadIRButton);
         loadIRButtons.set( i, newLoadIRButton);
+        
+        auto newEditDetectorButton = new TextButton();
+        newEditDetectorButton->setButtonText("edit dtc");
+        newEditDetectorButton->addListener(this);
+        addAndMakeVisible(newEditDetectorButton);
+        editDetectorButtons.set( i, newEditDetectorButton);
+        
+  
+        auto newEnvelopeAttackSlider = new Slider(
+                                                    Slider::SliderStyle::RotaryHorizontalVerticalDrag,
+                                                    Slider::TextBoxBelow);
+        newEnvelopeAttackSlider->setRange(0.1, 20.);
+        addChildComponent(newEnvelopeAttackSlider);
+        newEnvelopeAttackSlider->addListener(this);
+        envelopeAttackTimeKnobs.add(newEnvelopeAttackSlider);
+        
+        auto newEnvelopeDecaySlider = new Slider(
+                                                  Slider::SliderStyle::RotaryHorizontalVerticalDrag,
+                                                  Slider::TextBoxBelow);
+        newEnvelopeDecaySlider->setRange(0.1, 20.);
+        addChildComponent(newEnvelopeDecaySlider);
+        newEnvelopeDecaySlider->addListener(this);
+        envelopeDecayTimeKnobs.add(newEnvelopeDecaySlider);
+        
+        auto newEnvelopeReleaseSlider = new Slider(
+                                                  Slider::SliderStyle::RotaryHorizontalVerticalDrag,
+                                                  Slider::TextBoxBelow);
+        newEnvelopeReleaseSlider->setRange(0.1, 20.);
+        addChildComponent(newEnvelopeReleaseSlider);
+        newEnvelopeReleaseSlider->addListener(this);
+        envelopeReleaseTimeKnobs.add(newEnvelopeReleaseSlider);
+        
+        auto newEnvelopeSustainSlider = new Slider(
+                                                  Slider::SliderStyle::RotaryHorizontalVerticalDrag,
+                                                  Slider::TextBoxBelow);
+        newEnvelopeSustainSlider->setRange(0.1, 20.);
+        newEnvelopeSustainSlider->addListener(this);
+        addChildComponent(newEnvelopeSustainSlider);
+        envelopeSustainTimeKnobs.add(newEnvelopeSustainSlider);
+        
+        auto newEnvelopeLevelSlider = new Slider(
+                                                   Slider::SliderStyle::RotaryHorizontalVerticalDrag,
+                                                   Slider::TextBoxBelow);
+        newEnvelopeLevelSlider->setRange(-80,6);
+        addChildComponent(newEnvelopeLevelSlider);
+        newEnvelopeLevelSlider->addListener(this);
+        envelopeLevelKnobs.add(newEnvelopeLevelSlider);
+        
     }
     
     
-    auto meterNames = {"amp", "pitch", "pitch confidence", "pitch salience", "inharmonicity"};
-    {int i = 0;
-    for (auto meterName : meterNames) {
-        meters[i]->setName(meterName);
-    }
+    {
+        int i = 0;
+        for (auto meterName : {"amp", "pitch", "pitch confidence", "pitch salience", "inharmonicity"})
+            meters[i++]->setName(meterName);
     }
         
     meters[PITCH]->thresholdSlider.setSkewFactor(0.125);
@@ -118,38 +173,31 @@ processor(p)
     
     
     
-    addAndMakeVisible(masterFader);
-    masterFader.setRange(0., 1.);
-    masterFader.setSliderStyle(Slider::SliderStyle::LinearBar);
+    addAndMakeVisible(dryGainDBSlider);
+    dryGainDBSlider.setRange(-120., 12.);
+    dryGainDBSlider.setTextBoxStyle(Slider::TextBoxLeft, false, 30, 15);
+    dryGainDBSlider.setSliderStyle(Slider::SliderStyle::LinearBarVertical);
+    
+    addAndMakeVisible(wetGainDBSlider);
+    wetGainDBSlider.setRange(-120.f, 12.f);
+    wetGainDBSlider.setTextBoxStyle(Slider::TextBoxLeft, false, 30, 15);
+    wetGainDBSlider.setSliderStyle(Slider::SliderStyle::LinearBarVertical);
    
 }
 //=====================================================================
 void AnalysisEditor::paint(Graphics& g)
 {
     auto r = getLocalBounds();
+    auto top = r.removeFromTop(250);
     
     g.fillAll(Colours::lightgrey);
     
     g.setColour(Colours::black);
-    g.fillRect(waveformDisplay.getBounds());
-    
-    auto top = r.removeFromTop(250);
     g.drawRect(top);
     
-    auto waveformBounds = top.removeFromLeft(600);
-    g.drawRect(waveformBounds);
     
-    auto analysisSettingBounds = top;
-    g.drawRect(analysisSettingBounds);
     
-    auto middle = r.removeFromTop(250);
-    g.drawRect(middle);
-    
-    auto bottom = r.removeFromTop(250);
-    g.drawRect(bottom);
-    
-    auto masterControlBounds = bottom.removeFromRight(200);
-    g.drawRect(masterControlBounds);
+    g.fillRect(detectorDrawingBounds);;
     
 }
 //=====================================================================
@@ -158,20 +206,22 @@ void AnalysisEditor::resized()
     auto r = getLocalBounds();
     auto top = r.removeFromTop(250);
     
-    auto detectorDrawingBounds = top.removeFromLeft(600);
+    detectorDrawingBounds = top.removeFromLeft(600);
     positionDetectorDrawing(detectorDrawingBounds);
     
-    auto analysisSettingBounds = top;
+    analysisSettingBounds = top;
     positionDetectorSettings(analysisSettingBounds);
     
     auto middle = r.removeFromTop(250);
-    auto meterBounds = middle.removeFromLeft(600);
+    meterBounds = middle.removeFromLeft(600);
     positionMeters(meterBounds);
+    positionEditPanel(middle);
     
     auto bottom = r.removeFromTop(250);
     positionMeterButtons(bottom.removeFromLeft(600));
     
     auto masterControlBounds = bottom;
+    positionMasterPanel(masterControlBounds);
 }
 //=====================================================================
 void AnalysisEditor::positionDetectorDrawing(const Rectangle<int>& sectionBounds)
@@ -188,16 +238,29 @@ void AnalysisEditor::positionDetectorSettings(const Rectangle<int>& sectionBound
     
     auto b = sectionBounds.reduced(20);
     
-    setDisplayAnnotation.setBounds(b.removeFromTop(20)
-                                   .removeFromLeft(75));
+    
+    auto top = b.removeFromTop(50);
+    
+    setDisplayAnnotation.setBounds(top.removeFromTop(25));
+    setActiveDetector.setBounds(top.removeFromTop(20).reduced(5, 2));
     
     auto left = b.removeFromLeft(90);
-    attackTimeKnob.setBounds(left.removeFromTop(75).reduced(5));
-    rmsKnob.setBounds(left.removeFromTop(75).reduced(5));
+    
+    auto attackTimeKnobBounds = left.removeFromTop(75).reduced(5);
+    auto rmsKnobBounds = left.removeFromTop(75).reduced(5);
     
     auto right = b;
-    releaseTimeKnob.setBounds(right.removeFromTop(75).reduced(5));
-    smoothingSpeedKnob.setBounds(right.removeFromTop(75).reduced(5));
+    auto releaseTimeKnob = right.removeFromTop(75).reduced(5);
+    auto smoothingSpeedKnob = right.removeFromTop(75).reduced(5);
+    
+    for (int i = 0; i < NUM_DETECTORS; i++)
+    {
+        attackTimeKnobs[i]->setBounds(attackTimeKnobBounds);
+        releaseTimeKnobs[i]->setBounds(releaseTimeKnob);
+        rmsKnobs[i]->setBounds(rmsKnobBounds);
+        smoothingSpeedKnobs[i]->setBounds(smoothingSpeedKnob);
+
+    }
 }
 //=====================================================================
 void AnalysisEditor::positionMeters(const Rectangle<int>& sectionBounds)
@@ -213,14 +276,9 @@ void AnalysisEditor::positionMeterButtons(const Rectangle<int>& sectionBounds)
 
     auto meterIrOptionBounds = sectionBounds;
 
-    for (int i = 0; i < meterIRSelectionBoxes.size(); i++)
+    for (int i = 0; i < NUM_DETECTORS; i++)
     {
         auto meterIrColumn = meterIrOptionBounds.removeFromLeft(100).reduced(5);
-
-        meterIRSelectionBoxes[i]->setBounds( meterIrColumn
-                                       .removeFromTop(30)
-                                       .reduced(3));
-
         setEnvelopeModeBoxes[i]->setBounds(meterIrColumn
                                                .removeFromTop(30)
                                                .reduced(3));
@@ -232,30 +290,117 @@ void AnalysisEditor::positionMeterButtons(const Rectangle<int>& sectionBounds)
         loadIRButtons[i]->setBounds(  meterIrColumn
                                               .removeFromTop(30)
                                               .reduced(3));
+        editDetectorButtons[i]->setBounds(  meterIrColumn
+                                    .removeFromTop(30)
+                                    .reduced(3));
     }
 }
 //=====================================================================
-void AnalysisEditor::positionMasterPanel(const Rectangle<int>& sectionBounds())
-{}
+void AnalysisEditor::positionEditPanel(const Rectangle<int>& sectionBounds)
+{
+    auto editPanelBounds = sectionBounds;
+    editPanelBounds = editPanelBounds.removeFromLeft(300);
+    
+    auto left = editPanelBounds.removeFromLeft(100).reduced(5);
+    auto right = editPanelBounds.removeFromTop(sectionBounds.getHeight() - 25).reduced(5).translated(0, 25);
+    
+    auto envelopeAttackTimeBounds = left.removeFromTop(50);
+    auto envelopeDecayTimeBounds = right.removeFromTop(50);
+    auto envelopeSustainTimeBounds = left.removeFromTop(50);
+    auto envelopeReleaseTimeBounds = right.removeFromTop(50);
+    auto envelopeLevelBounds = left.removeFromTop(50);
+    
+    
+    for (auto k : envelopeAttackTimeKnobs)
+        k->setBounds(envelopeAttackTimeBounds);
+    for (auto k : envelopeDecayTimeKnobs)
+        k->setBounds(envelopeDecayTimeBounds);
+    for (auto k : envelopeSustainTimeKnobs)
+        k->setBounds(envelopeSustainTimeBounds);
+    for (auto k : envelopeReleaseTimeKnobs)
+        k->setBounds(envelopeReleaseTimeBounds);
+    for (auto k : envelopeLevelKnobs)
+        k->setBounds(envelopeLevelBounds);
+    
+}
+//=====================================================================
+void AnalysisEditor::positionMasterPanel(const Rectangle<int>& sectionBounds)
+{
+    auto b = sectionBounds;
+    
+    auto left = b.removeFromLeft(100);
+    wetGainDBSlider.setBounds(left.reduced(40, 20));
+    auto right = b;
+    dryGainDBSlider.setBounds(right.reduced(40, 20));
+}
 //=====================================================================
 void AnalysisEditor::sliderValueChanged(juce::Slider *slider)
 {
-    if (slider == &rmsKnob)
-        processor.detectors[activeWaveform].rmsEnvelope.setBufferSizeMS(slider->getValue());
-    if (slider == &attackTimeKnob)
-        processor.detectors[activeWaveform].rmsEnvelope.setAttackTimeMS(slider->getValue());
-    if (slider == &releaseTimeKnob)
-        processor.detectors[activeWaveform].rmsEnvelope.setReleaseTimeMS(slider->getValue());
-    if (slider == &smoothingSpeedKnob)
-        processor.detectors[activeWaveform].smoothedValue.setDurationS(slider->getValue(), 1.f);
-    if (slider == &samplesPerPixelKnob)
-        waveformViewers[activeWaveform]->setSamplesToAverage(slider->getValue());
+    //WAVEFORM VIEWING
+    if (attackTimeKnobs.contains(slider))
+    {
+        int index = getIndexOfItemInArray(attackTimeKnobs, slider);
+        processor.detectors[index].rmsEnvelope.setAttackTimeMS(slider->getValue());
+    }
+    
+    if (releaseTimeKnobs.contains(slider))
+    {
+        int index = getIndexOfItemInArray(releaseTimeKnobs, slider);
+        processor.detectors[index].rmsEnvelope.setReleaseTimeMS(slider->getValue());
+    }
+    
+    if (rmsKnobs.contains(slider))
+    {
+        int index = getIndexOfItemInArray(rmsKnobs, slider);
+        processor.detectors[index].rmsEnvelope.setBufferSizeMS(slider->getValue());
+    }
+    
+    if (smoothingSpeedKnobs.contains(slider))
+    {
+        int index = getIndexOfItemInArray(smoothingSpeedKnobs, slider);
+        processor.detectors[index].smoothedValue.setDurationS(slider->getValue(), 1.f);
+    }
+    
+//ENVELOPE
+    if (envelopeAttackTimeKnobs.contains(slider))
+    {
+        int index = getIndexOfItemInArray(envelopeAttackTimeKnobs, slider);
+        processor.convolutionEnvelopes[index].setAttackTime(slider->getValue());
+    }
+    
+    if (envelopeDecayTimeKnobs.contains(slider))
+    {
+        
+        int index = getIndexOfItemInArray(envelopeDecayTimeKnobs, slider);
+        processor.convolutionEnvelopes[index].setDecayTime(slider->getValue());
+        std::cout << index << std::endl;
+    }
+    
+    if (envelopeSustainTimeKnobs.contains(slider))
+    {
+        int index = getIndexOfItemInArray(envelopeSustainTimeKnobs, slider);
+        processor.convolutionEnvelopes[index].setReleaseTime(slider->getValue());
+    }
+    
+    if (envelopeReleaseTimeKnobs.contains(slider))
+    {
+        int index = getIndexOfItemInArray(envelopeReleaseTimeKnobs, slider);
+        processor.convolutionEnvelopes[index].setSustainLevel(jd::dbamp(slider->getValue()));
+    }
+    
+    if (envelopeLevelKnobs.contains(slider))
+    {
+        int index = getIndexOfItemInArray(envelopeLevelKnobs, slider);
+        processor.convolutionEnvelopes[index].mul = slider->getValue();
+    }
+
+    
+    
 }
 //=====================================================================
 void AnalysisEditor::buttonClicked(Button* changedButton)
 {
     for (int meterIndex = 0; meterIndex < NUM_DETECTORS; meterIndex++)
-    {
         if (changedButton == loadIRButtons[meterIndex])
         {
             FileChooser irFileChooser ("ChooseIR");
@@ -265,8 +410,46 @@ void AnalysisEditor::buttonClicked(Button* changedButton)
                 
                 processor.convolvers[meterIndex]->loadIRFromFile(irFile);
             }
-            
         }
+    
+    
+    if (editDetectorButtons.contains(dynamic_cast<TextButton*>(changedButton)))
+    {
+        
+        int index = getIndexOfItemInArray(editDetectorButtons, changedButton);
+        
+        deselectAllEnvelopes();
+            
+        if (index == currentEnvelopeIndex) {
+            currentEnvelopeIndex = -1;
+        } else {
+        
+            envelopeAttackTimeKnobs[index]->setVisible(true);
+            envelopeAttackTimeKnobs[index]->setEnabled(true);
+            
+            envelopeDecayTimeKnobs[index]->setVisible(true);
+            envelopeDecayTimeKnobs[index]->setEnabled(true);
+            
+            envelopeReleaseTimeKnobs[index]->setVisible(true);
+            envelopeReleaseTimeKnobs[index]->setEnabled(true);
+            
+            envelopeSustainTimeKnobs[index]->setVisible(true);
+            envelopeSustainTimeKnobs[index]->setEnabled(true);
+            
+            envelopeLevelKnobs[index]->setVisible(true);
+            envelopeLevelKnobs[index]->setEnabled(true);
+            currentEnvelopeIndex = index;
+        }
+        
+    
+    }
+    
+    
+    if (shouldInvertEnabledbRangeButtons.contains(dynamic_cast<ToggleButton*>(changedButton)))
+    {
+        int index = getIndexOfItemInArray(shouldInvertEnabledbRangeButtons, changedButton);
+        
+        processor.shouldReverseEnabledRange[index] = changedButton->getToggleState();
     }
 }
 //=====================================================================
@@ -276,14 +459,44 @@ void AnalysisEditor::comboBoxChanged(juce::ComboBox *comboBox)
     if (comboBox == &setDisplayAnnotation)
     {
         auto newScalingMode = (WaveformDisplay::ScalingMode)comboBox->getSelectedItemIndex();
-        waveformDisplay.setMode(newScalingMode);
+            waveformDisplay.setMode(newScalingMode);
     }
+    
     if (comboBox == &setActiveDetector)
     {
-        int j = 0;
+        int index = 0;
+        
         activeWaveform = comboBox->getSelectedId() - 1;
-        for (auto w :waveformViewers)
-            w->setIsActive( j++ == (activeWaveform) );
+        
+        deselectAllDetectionSettings();
+        
+        for (auto w :waveformViewers) {
+            if (activeWaveform == NUM_DETECTORS) {
+                w->setIsActive(true);
+                
+            } else {
+
+                bool indexIsActive = (index == (activeWaveform));
+                
+                w->setIsActive(indexIsActive );
+                
+                attackTimeKnobs[index]->setVisible(indexIsActive);
+                attackTimeKnobs[index]->setEnabled(indexIsActive);
+                
+                releaseTimeKnobs[index]->setVisible(indexIsActive);
+                releaseTimeKnobs[index]->setEnabled(indexIsActive);
+                
+                rmsKnobs[index]->setVisible(indexIsActive);
+                rmsKnobs[index]->setEnabled(indexIsActive);
+                
+                smoothingSpeedKnobs[index]->setVisible(indexIsActive);
+                smoothingSpeedKnobs[index]->setEnabled(indexIsActive);
+                
+                samplesPerPixelKnobs[index]->setVisible(indexIsActive);
+                samplesPerPixelKnobs[index]->setEnabled(indexIsActive);
+            }
+            index++;
+        }
     }
     
     //METER
@@ -293,27 +506,61 @@ void AnalysisEditor::comboBoxChanged(juce::ComboBox *comboBox)
             int itemID = comboBox->getSelectedItemIndex();
             setMeterTriggerMode(itemID);
         }
-    
-    
-    int i = 0;
-    for (auto meterIrSelectionModeBox : meterIRSelectionBoxes) {
-        if (comboBox == meterIrSelectionModeBox)
-        {
-            int newEnvelopeMode = comboBox->getSelectedItemIndex();
-            meterEnvelopeModes.getReference(i) = static_cast<EnvelopeMode>(newEnvelopeMode);
-        }
-        i++;
-    }
-    
-    for (auto setEnvelopeModeBox : setEnvelopeModeBoxes)
-        if (comboBox == setEnvelopeModeBox)
-        {
-            int itemID = comboBox->getSelectedItemIndex();
 
-        }
+    if (setEnvelopeModeBoxes.contains(comboBox)) {
+        int envelopeMode = comboBox->getSelectedItemIndex();
+        int index = getIndexOfItemInArray(setEnvelopeModeBoxes, comboBox);
+        processor.envelopeModes[index] = static_cast<EnvelopeMode>(envelopeMode);
+    }
 }
 //=====================================================================
 void AnalysisEditor::setMeterTriggerMode(int itemIndex)
 {
 //    processor.meterTriggerConditions.getReference(itemIndex) = static_cast<TriggerCondition>(itemIndex - 1);
 }
+//=====================================================================
+void AnalysisEditor::deselectAllEnvelopes()
+{
+    for (int i = 0; i < NUM_DETECTORS; i++)
+    {
+        envelopeAttackTimeKnobs[i]->setVisible(false);
+        envelopeAttackTimeKnobs[i]->setEnabled(false);
+        
+        envelopeDecayTimeKnobs[i]->setVisible(false);
+        envelopeDecayTimeKnobs[i]->setEnabled(false);
+        
+        envelopeReleaseTimeKnobs[i]->setVisible(false);
+        envelopeReleaseTimeKnobs[i]->setEnabled(false);
+        
+        envelopeSustainTimeKnobs[i]->setVisible(false);
+        envelopeSustainTimeKnobs[i]->setEnabled(false);
+        
+        envelopeLevelKnobs[i]->setVisible(false);
+        envelopeLevelKnobs[i]->setEnabled(false);
+
+    }
+}
+//=====================================================================
+void AnalysisEditor::deselectAllDetectionSettings()
+{
+    for (int i = 0; i < NUM_DETECTORS; i++)
+    {
+        attackTimeKnobs[i]->setVisible(false);
+        attackTimeKnobs[i]->setEnabled(false);
+        
+        releaseTimeKnobs[i]->setVisible(false);
+        releaseTimeKnobs[i]->setEnabled(false);
+        
+        rmsKnobs[i]->setVisible(false);
+        rmsKnobs[i]->setEnabled(false);
+        
+        smoothingSpeedKnobs[i]->setVisible(false);
+        smoothingSpeedKnobs[i]->setEnabled(false);
+        
+        samplesPerPixelKnobs[i]->setVisible(false);
+        samplesPerPixelKnobs[i]->setEnabled(false);
+        
+    }
+
+}
+

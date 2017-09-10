@@ -14,6 +14,18 @@ Jd_cmatrixAudioProcessor::Jd_cmatrixAudioProcessor()
                        )
 #endif
 {
+    for (int i = 0; i < NUM_DETECTORS; i++) {
+        auto w = new SignalDrawer();
+        waveformViewers.add(w);
+        
+        auto newStereoConvolver = new StereoConvolver();
+        convolvers.add (newStereoConvolver);
+    }
+    
+    for (auto& env : convolutionEnvelopes) {
+        env.adsr(0.1f,0.1f, jd::dbamp(-6.f), 2.f);
+    }
+    
 }
 
 Jd_cmatrixAudioProcessor::~Jd_cmatrixAudioProcessor()
@@ -89,15 +101,15 @@ void Jd_cmatrixAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     for (auto i : audioRateDetectors) {
         auto& d = detectors[i];
         d.init(sampleRate, sampleRate, samplesPerBlock);
-        d.setRange(0.2,0.7);
-        d.setRMSWindowSize(50);
+        d.setRange(0.f, 0.f);
+        d.setRMSWindowSize(5);
     }
     
     for (auto i : controlRateDetectors) {
         auto& d = detectors[i];
-        d.init(sampleRate, controlRate, controlBlockSize);
-        d.setRange(0.2,0.7);
-        d.setRMSWindowSize(50);
+        d.init(sampleRate, sampleRate, controlBlockSize);
+        d.setRange(0.f,0.f);
+        d.setRMSWindowSize(10);
     }
     
     detectors[PITCH].setInputScalingFunc(jd::midihz<float>);
@@ -116,12 +128,9 @@ void Jd_cmatrixAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     });
     detectors[LEVEL].shouldConvertInput = true;
     
-    for (int i = 0; i < NUM_DETECTORS; i++) {
-        auto w = new SignalDrawer();
-        w->setSamplesToAverage(512);
-        waveformViewers.add(w);
-    }
-    
+    for (auto w : waveformViewers)
+        w->setSamplesToAverage(128);
+
     //Analysis
     analysisChain.init(sampleRate, sampleRate, controlBlockSize);
 
@@ -129,7 +138,7 @@ void Jd_cmatrixAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     wetBuffer.setSize(2, samplesPerBlock);
     
     //Triggering
-    detectorEnabled.fill(false);
+    detectorIsEnabled.fill(false);
     convolutionTriggered.fill(false);
     
     //CONVOLUTION
@@ -138,8 +147,6 @@ void Jd_cmatrixAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
 
     for (auto& env : convolutionEnvelopes) {
         env.init(sampleRate, samplesPerBlock);
-//        env.setIncrementRate(sampleRate);
-        env.make({0.f,1.f,0.f}, { 4.f, 0.5f, }, {1.f, 1.f});
     }
 
     //Testing
@@ -151,12 +158,10 @@ void Jd_cmatrixAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     sin.setAmplitude(2.f);
  
     
-    for (int i = 0; i < NUM_DETECTORS; i++)
-    {
-        auto newStereoConvolver = new StereoConvolver();
-        newStereoConvolver->prepareToPlay (sampleRate, samplesPerBlock);
-        convolvers.add (newStereoConvolver);
+    for (int i = 0; i < NUM_DETECTORS; i++) {
+        convolvers[i]->prepareToPlay (sampleRate, samplesPerBlock);
     }
+    
 }
 
 void Jd_cmatrixAudioProcessor::releaseResources()
@@ -223,34 +228,37 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
     while (remaining > 0) {
         const int numToCopy = std::min(remaining, (int)controlBlockSize);
         const int bufOffset = numSamples - remaining;
-        auto& ac = analysisChain;
-        memcpy(&ac.inputSignal[0],
+
+        memcpy(&analysisChain.inputSignal[0],
                &mixedBuf[bufOffset],
                controlBlockSize * sizeof(float));
         //ControlLoop
-        ac.computeBlock();
+        analysisChain.computeBlock();
         
         
         //AudioLoop
         for (int i = 0; i < controlBlockSize; i++)
         {
+            //ThresholdChecking
             detectors[PITCH].setInput
-            (ac.pitchYinFFT.output<0>());
+            (analysisChain.pitchYinFFT.output<0>());
             
             detectors[PITCH_CONFIDENCE].setInput
-            (ac.pitchYinFFT.output<1>());
+            (analysisChain.pitchYinFFT.output<1>());
             
             detectors[PITCH_SALIENCE].setInput
-            (ac.pitchSalience.output<0>());
+            (analysisChain.pitchSalience.output<0>());
             
             detectors[INHARMONICITY].setInput
-            (ac.inharmonicity.output<0>());
-            //ThresholdChecking
-    
-            detectors[LEVEL].setInput(mixedBuf[bufOffset + i]);
+            (analysisChain.inharmonicity.output<0>());
             
+            detectors[LEVEL].setInput(mixedBuf[bufOffset + i]);
         
-            if (detectors[LEVEL].getGateCode() > -1)
+            if (detectors[LEVEL].getGateCode() == triggerConditions[LEVEL])
+            {
+                convolutionEnvelopes[0].trigger();
+            }
+            if (detectors[LEVEL].getGateCode() == releaseConditions[LEVEL])
             {
                 convolutionEnvelopes[0].trigger();
             }
@@ -265,68 +273,37 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
     }
     
     //Convolution
-//    for (int i = 0; i < NUM_DETECTORS; i++)
-//    {
-//        if (convolutionTriggered[i])
-//        {
-//            convolutionEnvelopes[i].trigger();
-//            convolutionTriggered[i] = false;
-//        };
-        /* do convolution for each active convolver*/
-//        convolvers_[i].processChannel(0, buffer.getReadPointer(0), numSamples);
-//        convolvers_[i].processChannel(1, buffer.getReadPointer(1), numSamples);
-//            convolvers_[i]->processBlock(inputs, numSamples);
-//        FloatVectorOperations::multiply(
-//        ApplyEnvelope
-        //sum and scale convolutions
-//    }
-    
-    if (convolutionTriggered[0]) {
-        convolutionEnvelopes[0].trigger();
-        convolutionTriggered[0] = false;
-    }
-    
-    convolutionEnvelopes[0].updateAction();
-    
-    convolvers[0]->processBlock(inputs, numSamples);
-    
-    convolutionEnvelopes[0].writeToBlock(convolutionEnvelopeBuffers[0].getWritePointer(0), numSamples);
-//    
-//    memcpy(wetBuffer.getWritePointer(0), convolvers[0]->leftChannel.getBufferData(), numSamples);
-//    memcpy(wetBuffer.getWritePointer(1), convolvers[0]->rightChannel.getBufferData(), numSamples);
-    
-    FloatVectorOperations::multiply(wetBuffer.getWritePointer(0),
-                                    convolutionEnvelopeBuffers[0].getWritePointer(0),     convolvers[0]->leftChannel.getBufferData(), numSamples);
-    
-    FloatVectorOperations::multiply(wetBuffer.getWritePointer(1),
-                                    convolutionEnvelopeBuffers[0].getWritePointer(0),     convolvers[0]->rightChannel.getBufferData(), numSamples);
-    
 
-//    for (int n= 0; n < NUM_DETECTORS; n++)
-//    {
-//        for (int c = 0; c < 2; c++) {
-//            for (int i = 0; i < numSamples; i++)
-//            {
-//              
-//                
-//            }
+//    if (convolutionEnabled[0]) {
+//        
+//        if (convolutionTriggered[0]) {
+//            convolutionEnvelopes[0].trigger();
+//            convolutionTriggered[0] = false;
 //        }
-//    }
-//    FloatVectorOperations::add(wetBuffer.getWritePointer(0),
-//                               convolvers_[0]->bufferDataAt(0),
-//                               numSamples);
-//    FloatVectorOperations::add(wetBuffer.getWritePointer(1),
-//                               convolvers_[0]->bufferDataAt(1),
-//                               numSamples);
-
     
-//    FloatVectorOperations::multiply(wetBuffer.getWritePointer(0), 1/convolvers_.size(), numSamples);
-//    FloatVectorOperations::multiply(wetBuffer.getWritePointer(1), 1/convolvers_.size(), numSamples);
-//    
+        convolvers[0]->processBlock(inputs, numSamples);
+        
+            convolutionEnvelopes[0].updateAction();
+        convolutionEnvelopes[0].writeToBlock(convolutionEnvelopeBuffers[0].getWritePointer(0), numSamples);
+
+        FloatVectorOperations::multiply(wetBuffer.getWritePointer(0),
+                                        convolutionEnvelopeBuffers[0]
+                                        .getWritePointer(0),
+                                        buffer.getReadPointer(0), numSamples);
+        
+        FloatVectorOperations::multiply(wetBuffer.getWritePointer(1),
+                                        convolutionEnvelopeBuffers[0]
+                                        .getWritePointer(0),
+                                        buffer.getReadPointer(1)
+                                        , numSamples);
+    
+
+//    }?
+    
+    
     //Cookbook EQ??
     
     //mix input and output
-    
     
     
     //masterLevel
@@ -336,7 +313,7 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
 //        outputs[1][i] = convolvers[0]->rightChannel.getBufferData()[i];
         
         outputs[0][i] = wetBuffer.getSample(0, i);
-        outputs[0][i] = wetBuffer.getSample(1, i);
+        outputs[1][i] = wetBuffer.getSample(1, i);
     }
     
 }

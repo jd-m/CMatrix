@@ -44,6 +44,14 @@ public:
         }
     }
     
+    void addDefaultADSR() {
+        if (!defaultNodesCreated) {
+            addHandleByValue(0, 0.3);
+            addHandleByValue(-6.f, 0.3);
+            defaultNodesCreated = true;
+        }
+    }
+    
     void mouseDown(const MouseEvent &event) override;
     
     void makeFromEnvelope(const jd::Envelope<float>& env);
@@ -80,7 +88,9 @@ public:
             m_isSelected = false;
             constrainPosition();
             if (event.mods.isAltDown())
-                ((JDEnvelopeGUI*)getParentComponent())->removeHandle(index());
+//                if (!m_shouldAddHandleOnDoubleClick)
+                    ((JDEnvelopeGUI*)getParentComponent())->removeHandle(index());
+            
             repaint();
         }
         void mouseDrag  (const MouseEvent &event) override {
@@ -181,7 +191,7 @@ public:
         float y = (1.f - level) * (float)getHeight();
         float x = normalisedTime * (float)getWidth();
     
-//        std::cout << " x: " << getHeight() << " y: " << y <<  std::endl;
+        std::cout << " x: " << getHeight() << " y: " << y <<  std::endl;
         
         addHandle({ static_cast<int>(x),
                     static_cast<int>(y) });

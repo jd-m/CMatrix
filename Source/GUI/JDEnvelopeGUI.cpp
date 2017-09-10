@@ -126,6 +126,7 @@ Slider* JDEnvelopeGUI::makeNewCurveSlider()
 //===================================================================
 void JDEnvelopeGUI::removeHandle(const int indexToRemoveAt)
 {
+    if (m_shouldAddHandleOnDoubleClick) {
     removeChildComponent(m_nodeHandles[indexToRemoveAt]);
     removeChildComponent(m_curveSliders[indexToRemoveAt]);
     
@@ -138,6 +139,7 @@ void JDEnvelopeGUI::removeHandle(const int indexToRemoveAt)
     
     updateSliderBounds();
     repaint();
+    }
 }
 //===================================================================
 void JDEnvelopeGUI::removeAllHandles()

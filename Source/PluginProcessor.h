@@ -57,11 +57,14 @@ public:
     
     using TriggerCondition = jd::GateDouble<float>::GateCrossingCode;
     
+    template<class Type>
+    using DetectorPropertyArray = std::array<Type, NUM_DETECTORS>;
+    
     enum EnvelopeMode {
         oneShot,
         sustain
     };
-    
+
     std::vector<float> mixedBuf;// for analysis
     
     AudioSampleBuffer wetBuffer;
@@ -79,13 +82,18 @@ public:
     mutable CriticalSection convolverMutex;
     
     OwnedArray<StereoConvolver> convolvers;
-    std::array<jd::Envelope<float>, NUM_DETECTORS> convolutionEnvelopes;
-    std::array<AudioSampleBuffer, NUM_DETECTORS> convolutionEnvelopeBuffers;
-    std::array<bool, NUM_DETECTORS> convolutionTriggered;
-    std::array<bool, NUM_DETECTORS> convolutionEnabled;
+    DetectorPropertyArray<jd::Envelope<float>> convolutionEnvelopes;
+    DetectorPropertyArray<AudioSampleBuffer> convolutionEnvelopeBuffers;
     
-    std::array<TriggerCondition, NUM_DETECTORS> meterTriggerConditions;
-    std::array<bool, NUM_DETECTORS> detectorEnabled;
+    DetectorPropertyArray<bool> convolutionTriggered;
+    DetectorPropertyArray<bool> convolutionEnabled;
+    
+    DetectorPropertyArray<TriggerCondition> triggerConditions;
+    DetectorPropertyArray<TriggerCondition> releaseConditions;
+    DetectorPropertyArray<bool> detectorIsEnabled;
+    DetectorPropertyArray<bool> shouldReverseEnabledRange;
+    DetectorPropertyArray<EnvelopeMode> envelopeModes;
+    
     
     //FOR GUI
     OwnedArray<SignalDrawer> waveformViewers;
@@ -93,7 +101,7 @@ public:
     //levels
     float inputLeveldB {-6.f};
     float masterLeveldB {-6.f};
-    float mad18dB {-18.f};
+    float pad18dB {-18.f};
     
     //TEST SIGNALS
     volatile double dbg_meter = 0.;

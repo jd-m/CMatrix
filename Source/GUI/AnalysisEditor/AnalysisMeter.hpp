@@ -25,6 +25,7 @@ public:
     void timerCallback() override;
     //=====================================================
     void setName(String meterName);
+    void setRangeIsInverted(bool shouldInvertRange);
 //private:
     //=====================================================
     class AnalysisMeterBar : public Component
@@ -40,7 +41,7 @@ public:
         Colour withinRangeCol { Colours::darkorange };
         float m_level { 1.f };
         Range<float> m_range {0.25f, 0.75f};
-        
+        bool rangeIsInverted { false };
         friend AnalysisMeter;
     };
     //=====================================================

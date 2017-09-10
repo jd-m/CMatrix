@@ -45,7 +45,7 @@ void AnalysisMeter::AnalysisMeterBar::setRange(const float min, const float max)
 //============================================================================
 bool AnalysisMeter::AnalysisMeterBar::isWithinRange()
 {
-    return m_range.contains(1. - m_level);
+    return rangeIsInverted ? m_range.contains(1. - m_level) : !m_range.contains(1. - m_level);
 }
 //====================================================================
 /* Analysis Meter */
@@ -149,5 +149,10 @@ void AnalysisMeter::setName(const juce::String meterName)
     m_name = meterName;
     nameLabel.setText(meterName, dontSendNotification);
 }
-
+//============================================================================
+void AnalysisMeter::setRangeIsInverted(bool shouldInvertRange)
+{
+    meterBar.rangeIsInverted = shouldInvertRange;
+    
+}
     

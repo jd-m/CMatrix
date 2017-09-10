@@ -19,7 +19,7 @@ struct DetectorUnit {
         rangeChecker.init(controlRate, blockSize);
         rmsEnvelope.init(controlRate, blockSize);
         smoothedValue.setSampleRate(sampleRate);
-        smoothedValue.setDurationS(1.,1.f);
+        smoothedValue.setDurationS(0.01,1.f);
     }
     //===============================================================
     void setRange(float newLower, float newUpper) {

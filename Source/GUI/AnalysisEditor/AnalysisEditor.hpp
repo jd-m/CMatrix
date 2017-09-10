@@ -15,7 +15,7 @@
 class AnalysisEditor : public Component,
 public Slider::Listener,
 public Button::Listener,
-public ComboBoxListener,
+public ComboBox::Listener,
 public ChangeBroadcaster
 {
 public:
@@ -28,7 +28,8 @@ public:
     void positionDetectorSettings(const Rectangle<int>& sectionBounds);
     void positionMeters(const Rectangle<int>& sectionBounds);
     void positionMeterButtons(const Rectangle<int>& sectionBounds);
-    void positionMasterPanel(const Rectangle<int>& sectionBounds());
+    void positionMasterPanel(const Rectangle<int>& sectionBounds);
+    void positionEditPanel(const Rectangle<int>& sectionBounds);
     //=====================================================================
     void sliderValueChanged(Slider* slider) override;
     //=====================================================================
@@ -41,13 +42,25 @@ public:
     void soloDetectorSignal();
     //=====================================================================
 
-    void mouseDown(const MouseEvent& e) override
-    {
-        if (e.getNumberOfClicks() == 2)
-        {
-//            processor.convolutionEnvelopes[0].trigger();
-        }
+    void mouseDown(const MouseEvent& e) override {
+        processor.convolutionEnvelopes[0].trigger();
     }
+    
+    void mouseUp(const MouseEvent& e) override {
+        processor.convolutionEnvelopes[0].release();
+    }
+    template<class Container, class ItemType>
+    int getIndexOfItemInArray (Container& container, ItemType& item)
+    {
+        for (int index = 0; index < NUM_DETECTORS; index++) {
+            if (item == container[index])
+                return index;
+        }
+        return -1;
+        
+    }
+    void deselectAllEnvelopes();
+    void deselectAllDetectionSettings();
     
     
     Jd_cmatrixAudioProcessor& processor;
@@ -55,6 +68,8 @@ public:
     WaveformDisplay waveformDisplay;
 
     int activeWaveform = LEVEL;
+    
+    int indexOfDetectorBeingEdited  {-1};
     
     Array<Colour> detectorColours {
         Colours::darkorange,
@@ -68,36 +83,53 @@ public:
     ComboBox setActiveDetector;
     
     //Envelope detection
-    Slider attackTimeKnob;
-    Slider releaseTimeKnob;
-    Slider rmsKnob;
-    Slider smoothingSpeedKnob;
-    Slider samplesPerPixelKnob;
+    OwnedArray<Slider> attackTimeKnobs;
+    OwnedArray<Slider> releaseTimeKnobs;
+    OwnedArray<Slider> rmsKnobs;
+    OwnedArray<Slider> smoothingSpeedKnobs;
+    OwnedArray<Slider> samplesPerPixelKnobs;
     
     //TRIGGER
     using TriggerCondition = jd::GateDouble<float>::GateCrossingCode;
     
-    enum EnvelopeMode {
-        oneShot,
-        sustain
-    };
+    using EnvelopeMode = Jd_cmatrixAudioProcessor::EnvelopeMode;
     
-    OwnedArray<ToggleButton> metersToUseForSelectionButtons;
-    ComboBox triggerConditionBox;
-    TriggerCondition irSequenceTriggerCondition;
+    int currentEnvelopeIndex {-1};
+
+    ComboBox envelopeComboBox;
+    OwnedArray<Slider> envelopeAttackTimeKnobs;
+    OwnedArray<Slider> envelopeDecayTimeKnobs;
+    OwnedArray<Slider> envelopeSustainTimeKnobs;
+    OwnedArray<Slider> envelopeReleaseTimeKnobs;
+    OwnedArray<Slider> envelopeLevelKnobs;
+
+    OwnedArray<ToggleButton> shouldApplyEnvelopeToIRButtons;
     
     //METERS
     OwnedArray<AnalysisMeter> meters;
     
-    Array<EnvelopeMode> meterEnvelopeModes;
     OwnedArray<ComboBox> meterIRTriggerModeBoxes;
-    OwnedArray<ComboBox> meterIRSelectionBoxes;
+    OwnedArray<ComboBox> meterIRReleaseModeBoxes;
+    OwnedArray<ComboBox> shouldInvertEnabledbRangeComboBoxes;
     OwnedArray<ComboBox> setEnvelopeModeBoxes;
     OwnedArray<TextButton> loadIRButtons;
+    OwnedArray<TextButton> editDetectorButtons;
     
     CmatrixLookAndFeel lookAndFeel;
-    TextButton pad;
-    Slider masterFader;
+    
+    ComboBox gainPaddingDBSelection;
+    Slider wetGainDBSlider;
+    Slider dryGainDBSlider;
+    
+    //outputAnalysisData
+    //ComboBox
+    
+    //Link Smoothness To Envelope Attack
+    
+    Rectangle<int> detectorDrawingBounds;
+    Rectangle<int> analysisSettingBounds;
+    Rectangle<int> meterBounds;
+    Rectangle<int> masterControlBounds;
     
 };
 
