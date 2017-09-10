@@ -15,14 +15,14 @@
 #include "jdHeader.h"
 #include "../JuceLibraryCode/JuceHeader.h"
 
-template<int NumChannels>
-class SimpleConvolver {
+
+class Convolver {
 public:
    
     void prepareToPlay (double sampleRate, int samplesPerBlock) {
         
         {
-        
+            
             convolverHeadBlockSize = 1;
             while (convolverHeadBlockSize < static_cast<size_t>(samplesPerBlock))
             {
@@ -31,8 +31,7 @@ public:
             convolverTailBlockSize = std::max(size_t(8192), 2 * convolverHeadBlockSize);
         }
         
-        for (auto& processingBuffer : m_processingBuffers)
-            processingBuffer.resize(samplesPerBlock);
+        processingBuffer.resize(samplesPerBlock);
     }
     
     void loadIRFromFile (File &file, size_t fileChannel)
@@ -61,7 +60,7 @@ public:
             audioFormatReaderSource.getNextAudioBlock(info);
         
             ::memcpy(buffer.data() + pos,
-                     importBuffer.getReadPointer(fileChannel),
+                     importBuffer.getReadPointer(fileChannel % fileChannels),
                      static_cast<size_t>(loading) * sizeof(float)
                      );
             pos += static_cast<size_t>(loading);
@@ -69,47 +68,50 @@ public:
         
         {
         
-        m_convolvers[fileChannel].init(convolverHeadBlockSize,
+        convolver.init(convolverHeadBlockSize,
                        convolverTailBlockSize,
                        buffer.data(),
                        fileLen);
         }
     }
-    
-    void loadMultiChannelIRfromFile(File& file)
-    {
-        for(int i = 0; i < NumChannels; i++)
-            loadIRFromFile(file, i);
-    }
 
-    void processBlock (const float **inputBlock, int numSamples) {
-        
-        for (int channelNum = 0; channelNum < NumChannels; channelNum++) {
-            m_convolvers[channelNum].process(inputBlock[channelNum], m_processingBuffers[channelNum].data(), numSamples);
-        }
+    void processBlock (const float *inputBlock, int numSamples) {
+            convolver.process(inputBlock, processingBuffer.data(), numSamples);
     }
     
-    void processChannel(int channelNum, const float *inputBlock, int numSamples)
-    {
-        m_convolvers[channelNum].process(inputBlock, m_processingBuffers[channelNum].data(), numSamples);
-    }
-    
-    void crossConvolve(const float **inputBlock, int numSamples){
-        //    
-        //  [L 0 1]
-        //  [R 1 0]
-    }
-
-    const float* bufferDataAt(int channelNum) { return m_processingBuffers[channelNum].data(); }
-    
+    float* getBufferData() { return processingBuffer.data(); }
     
     size_t convolverHeadBlockSize;
     size_t convolverTailBlockSize;
-    String name = "";//Cannot be copied
-    std::array<fftconvolver::TwoStageFFTConvolver, NumChannels> m_convolvers;
-    std::array<std::vector<float>, NumChannels> m_processingBuffers;
+    fftconvolver::TwoStageFFTConvolver convolver;
+    std::vector<float> processingBuffer;
 };
 
 //====================================================================
+
+struct StereoConvolver {
+
+    void prepareToPlay(double sampleRate, int blockSize)
+    {
+        leftChannel.prepareToPlay(sampleRate, blockSize);
+        rightChannel.prepareToPlay(sampleRate, blockSize);
+    }
+    
+    void loadIRFromFile(File& file)
+    {
+        leftChannel.loadIRFromFile(file, 0);
+        rightChannel.loadIRFromFile(file, 1);
+    }
+    
+    void processBlock(const float** input, int numSamples)
+    {
+        leftChannel.processBlock(input[0], numSamples);
+        rightChannel.processBlock(input[1], numSamples);
+    }
+    
+    
+    Convolver leftChannel;
+    Convolver rightChannel;
+};
 
 #endif /* SimpleConvolver_hpp */

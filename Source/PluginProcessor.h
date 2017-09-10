@@ -1,13 +1,3 @@
-/*
-  ==============================================================================
-
-    This file was auto-generated!
-
-    It contains the basic framework code for a JUCE plugin processor.
-
-  ==============================================================================
-*/
-
 #ifndef PLUGINPROCESSOR_H_INCLUDED
 #define PLUGINPROCESSOR_H_INCLUDED
 
@@ -63,37 +53,52 @@ public:
     //==============================================================================
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
+    //==============================================================================
     
-    std::vector<float> mixedBuf;
+    using TriggerCondition = jd::GateDouble<float>::GateCrossingCode;
+    
+    enum EnvelopeMode {
+        oneShot,
+        sustain
+    };
+    
+    std::vector<float> mixedBuf;// for analysis
     
     AudioSampleBuffer wetBuffer;
-    
-    AudioSampleBuffer dryBuffer;
     
     int controlBlockSize {0};
     int loopsPerBlock { 8 };
 
-    //PROCESSOR
-//    SimpleConvolver<2> convolver;
-//    SimpleConvolver<2> convolverR;
+    
+    RangeDetector gate;
+    
+    //DEV
+    AnalyserChain analysisChain;
+    DetectorChain detectors;
     
     mutable CriticalSection convolverMutex;
     
-    OwnedArray<SimpleConvolver<2>> convolvers;
-    jd::Envelope<float> convolverEnvelope;
-    bool convolverSwitch {false};
+    OwnedArray<StereoConvolver> convolvers;
+    std::array<jd::Envelope<float>, NUM_DETECTORS> convolutionEnvelopes;
+    std::array<AudioSampleBuffer, NUM_DETECTORS> convolutionEnvelopeBuffers;
+    std::array<bool, NUM_DETECTORS> convolutionTriggered;
+    std::array<bool, NUM_DETECTORS> convolutionEnabled;
     
-    RangeDetector gate;
-    //AnalysisChain
-    AnalyserChain analysisChain;
-    //DEV
-    DetectorChain detectors;
+    std::array<TriggerCondition, NUM_DETECTORS> meterTriggerConditions;
+    std::array<bool, NUM_DETECTORS> detectorEnabled;
     
+    //FOR GUI
+    OwnedArray<SignalDrawer> waveformViewers;
+    
+    //levels
+    float inputLeveldB {-6.f};
+    float masterLeveldB {-6.f};
+    float mad18dB {-18.f};
+    
+    //TEST SIGNALS
     volatile double dbg_meter = 0.;
     jd::Impulse<float> imp;
     jd::Phasor<float> sin;
-    
-    OwnedArray<SignalDrawer> waveformViewers;
     
 private:
     //==============================================================================

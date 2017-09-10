@@ -20,14 +20,16 @@ Jd_cmatrixAudioProcessorEditor::Jd_cmatrixAudioProcessorEditor (Jd_cmatrixAudioP
     
     addAndMakeVisible(tabbedWindow);
     tabbedWindow.addTab("Analysis", Colours::darkgrey, &analysisEditor, false);
-    tabbedWindow.addTab("IR", Colours::lightgrey, &irEditor, false);
+//    tabbedWindow.addTab("IR", Colours::lightgrey, &irEditor, false);
     
-    File f = File("~/Music/sc_sounds/beat/piano/piano_01.wav");
+//    File f = File("~/Music/sc_sounds/beat/piano/piano_01.wav");
 //    processor.convolver.loadIRFromFile(f, 0);
 //    processor.convolverR.loadIRFromFile(f, 0);
 
-    setSize (1000, 750);
+    setSize (800, 750);
     setOpaque(true);
+    
+    setInterceptsMouseClicks(true, true);
 }
 
 Jd_cmatrixAudioProcessorEditor::~Jd_cmatrixAudioProcessorEditor()
@@ -54,7 +56,7 @@ void Jd_cmatrixAudioProcessorEditor::timerCallback()
 {
     
     std::stringstream ss;
-    std::cout << processor.detectors[LEVEL].gateCode << std::endl;
+//    std::cout <<  << std::endl;
 //    int i = 0;
 //    for (auto& d : processor.detectors.detectors)
 //    {

@@ -14,6 +14,7 @@
 #include "../../../JuceLibraryCode/JuceHeader.h"
 #include "../../jd-lib/jdHeader.h"
 #include "../JDEnvelopeGUI.hpp"
+#include "PluginProcessor.h"
 
 //===================================================================
 /* IR State */
@@ -51,18 +52,33 @@ struct IRState {
     //===================================================================
     void copyStateFrom( const IRState& target);
     
+    ScopedPointer<SimpleConvolver> makeNewConvolver (double sampleRate, int samplesPerBlock)
+    {
+        if (kernelFile.exists())
+        {
+            auto newConvolver = ScopedPointer<SimpleConvolver> ( new SimpleConvolver());
+            newConvolver->prepareToPlay(sampleRate, samplesPerBlock);
+            newConvolver->loadIRFromFile(kernelFile,0);
+            return newConvolver;
+        } else {
+            return nullptr;
+        }
+    }
+    
     String name;
     int uid;
     ScopedPointer<AudioFormatReader> reader;
     int samplesPerThumbnailSample;
-    AudioFormatManager* formatManager;//std::shared
-    AudioThumbnailCache* thumbnailCache;//std::shared
+    AudioFormatManager* formatManager;//should be shared
+    AudioThumbnailCache* thumbnailCache;//should be shared
     ScopedPointer<AudioThumbnail> thumbnail;
     double startTime { 0. };
     double duration { 0. };
     File loadedFile;
     jd::Envelope<float> env;
     bool shouldReverse {false};
+    
+    File kernelFile;
 };
 
 //===================================================================

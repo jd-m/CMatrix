@@ -15,7 +15,7 @@
 #include "PluginProcessor.h"
 #include <memory.h>
 #include "AnalysisEditor.hpp"
-#include "IREditor.hpp"
+//#include "IREditor.hpp"
 
 //==============================================================================
 /**
@@ -33,14 +33,17 @@ public:
     void resized() override;
     void timerCallback() override;
     void sliderValueChanged(Slider* slider) override;
-
+    
+   
+    
 private:
 
     Jd_cmatrixAudioProcessor& processor;
+
     
     TabbedComponent tabbedWindow {TabbedButtonBar::Orientation::TabsAtTop};
-    IREditor irEditor { processor };
-    AnalysisEditor analysisEditor { processor, irEditor.buttonGrid};
+    AnalysisEditor analysisEditor { processor};
+//    IREditor irEditor { processor };
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Jd_cmatrixAudioProcessorEditor)
 };
 

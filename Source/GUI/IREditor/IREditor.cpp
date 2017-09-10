@@ -4,6 +4,7 @@
 //===================================================================
 IREditor::IREditor(Jd_cmatrixAudioProcessor& p):
 processor(p)
+//analysisEditor(sourceAnalysisEditor)
 {
     formatManager.registerBasicFormats();
     
@@ -41,6 +42,8 @@ processor(p)
     
     if (!irClipDir.exists())
         irClipDir.createDirectory();
+    
+//    irInfosComboBox.addListener(&analysisEditor);
     
 }
 IREditor::~IREditor()
@@ -101,7 +104,6 @@ void IREditor::comboBoxChanged(juce::ComboBox *comboBox)
 //===================================================================
 void IREditor::storeIrInfo()
 {
-    
     waveformSection.makePatternElementInfoEnvelope();
     
     auto newIRName = irNameLabel.getText();
@@ -116,24 +118,18 @@ void IREditor::storeIrInfo()
         newIrInfo.copyStateFrom(currentIrInfo);
         newIrInfo.uid = newUID;
         newIrInfo.name = newIRName;
+        newIrInfo.kernelFile = writeIRClipToFile(newIRName);
         irInfos.set(newIRName, std::forward<IRState>(newIrInfo));
         irInfosComboBox.addItem(newIRName, newUID);
         buttonGrid.addItemToIRComboBoxes(newIRName, newUID);
+//        analysisEditor.addIRsToComboBoxes(&irInfosComboBox);
+        sendChangeMessage();
         
         std::cout << newIRName << std::endl;
         std::cout << irInfos[newIRName].reader->numChannels << std::endl;
         std::cout << irInfos[newIRName].lengthSamples() << std::endl;
         
-        File kernelFile = writeIRClipToFile(newIRName);
-        {
-        ScopedLock {processor.convolverMutex};
         
-        auto newConvolver = new SimpleConvolver<2> {};
-        newConvolver->prepareToPlay (processor.getSampleRate(), processor.getBlockSize());
-        newConvolver->loadMultiChannelIRfromFile(kernelFile);
-        newConvolver->name = newIRName;
-        processor.convolvers.addIfNotAlreadyThere(newConvolver);
-        }
     }
 
 }
@@ -157,14 +153,18 @@ void IREditor::removeIR()
             //delete
             irInfos.remove(irInfosComboBox.getText());
             irInfosComboBox.clear();
+//            analysisEditor.clearMeterIRcomboBoxes();
             buttonGrid.clearIRComboBoxes();
         
+        int i = 1;
         for (const auto& info : irInfos) {
             irInfosComboBox.addItem(info.name,
                                     info.uid);
             buttonGrid.addItemToIRComboBoxes(info.name,
                                              info.uid);
+
         }
+//        analysisEditor.addIRsToComboBoxes(&irInfosComboBox);
 
     }
 }

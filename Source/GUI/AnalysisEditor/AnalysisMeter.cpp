@@ -64,6 +64,7 @@ detector(sourceDetector)
     addAndMakeVisible(thresholdSlider);
     thresholdSlider.setSliderStyle(Slider::SliderStyle::TwoValueVertical);
     thresholdSlider.setRange(0., 1.);
+    thresholdSlider.setMinAndMaxValues(0.0,0.0);
     thresholdSlider.addListener(this);
     
     addAndMakeVisible(enableButton);

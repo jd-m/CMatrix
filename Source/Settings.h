@@ -32,7 +32,6 @@ namespace util
     
     const auto freqLimits { jd::Range<float>::fromArray(freqScale) };
     const auto logAmpLimits { jd::Range<float>::fromArray(linAmpScale) };
-    
 };
 
 #endif /* Settings_h */
