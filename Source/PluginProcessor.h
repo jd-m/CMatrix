@@ -55,7 +55,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
     //==============================================================================
     
-    using TriggerCondition = jd::GateDouble<float>::GateCrossingCode;
+    using TriggerCondition = std::array<bool, 4>;
     
     template<class Type>
     using DetectorPropertyArray = std::array<Type, NUM_DETECTORS>;
@@ -64,15 +64,31 @@ public:
         oneShot,
         sustain
     };
+    
+    enum GateCode {
+        onExitFromBelow = 0,
+        onEntryToBelow,
+        onExitToAbove,
+        onEntryFromAbove,
+        onEntryToRange,
+        onExitFromRange
+    };
+    
+    enum RequiredDetectorState
+    {
+        none,
+        withinRange,
+        outsideRange,
+    };
 
     std::vector<float> mixedBuf;// for analysis
     
     AudioSampleBuffer wetBuffer;
+    AudioSampleBuffer multiplicationBuffer;
     
-    int controlBlockSize {0};
+    int controlBlockSize { 0 };//512
     int loopsPerBlock { 8 };
 
-    
     RangeDetector gate;
     
     //DEV
@@ -85,7 +101,7 @@ public:
     DetectorPropertyArray<jd::Envelope<float>> convolutionEnvelopes;
     DetectorPropertyArray<AudioSampleBuffer> convolutionEnvelopeBuffers;
     
-    DetectorPropertyArray<bool> convolutionTriggered;
+    DetectorPropertyArray<bool> entryToRangeTriggered;
     DetectorPropertyArray<bool> convolutionEnabled;
     
     DetectorPropertyArray<TriggerCondition> triggerConditions;
@@ -93,15 +109,20 @@ public:
     DetectorPropertyArray<bool> detectorIsEnabled;
     DetectorPropertyArray<bool> shouldReverseEnabledRange;
     DetectorPropertyArray<EnvelopeMode> envelopeModes;
+    DetectorPropertyArray<size_t> triggerCooldowns;
+    DetectorPropertyArray<size_t> triggerCooldownTimes;
     
+    DetectorPropertyArray<std::array<RequiredDetectorState, NUM_DETECTORS>> requirementsOfOtherDetectors;
     
     //FOR GUI
     OwnedArray<SignalDrawer> waveformViewers;
     
     //levels
-    float inputLeveldB {-6.f};
-    float masterLeveldB {-6.f};
-    float pad18dB {-18.f};
+    jd::AtomicSmoothedValue<float> dryGainDB {-6.f};
+    jd::AtomicSmoothedValue<float> wetGainDB {-6.f};
+    jd::AtomicSmoothedValue<float> padGainDB { 0.f };
+    
+    std::array<jd::OneZero<float>, 5> envSmoother;
     
     //TEST SIGNALS
     volatile double dbg_meter = 0.;

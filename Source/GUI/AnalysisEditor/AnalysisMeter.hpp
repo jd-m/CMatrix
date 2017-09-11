@@ -32,6 +32,7 @@ public:
     {
     public:
         void paint (Graphics& g) override;
+        void resized () override {}
         void setLevel(const float level);
         void setRange(const float min, const float max);
         Range<float> getRange();
@@ -50,6 +51,7 @@ public:
     AnalysisMeterBar    meterBar;
     Slider              thresholdSlider;
     ToggleButton        enableButton;
+    ToggleButton        invertRangeButton;
     CmatrixLookAndFeel  lookAndFeel;
     
     String m_name;

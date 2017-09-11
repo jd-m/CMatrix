@@ -89,7 +89,9 @@ struct DetectorUnit {
     float normalisedScaled(float value) {
         if (shouldConvertOutput)
         {
-            return jd::linlin(scaleOutput(value),
+            return jd::linlin(scaleOutput(jd::clip(value,
+                                                   limits.lower,
+                                                   limits.upper)),
                               scaleOutput(limits.lower),
                               scaleOutput(limits.upper),
                               0.f,
@@ -119,6 +121,10 @@ struct DetectorUnit {
         return gateCode;
     }
     
+    bool crossedThresholdOnLastCheck()
+    {
+        return getGateCode() > -1;
+    }
     //===============================================================
     template<class Func>
     void performOnEnvelope(Func funcToPerform)

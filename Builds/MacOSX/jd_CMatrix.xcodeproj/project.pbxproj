@@ -34,6 +34,7 @@
 		4815D0F69E5E72B385EFF4B6 /* juce_core.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2D27495B32E59D7C4AA290B8 /* juce_core.mm */; };
 		49D705600A65DCFDCBFE889F /* juce_data_structures.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0F0211C8F9DFBC0BDD52A3CE /* juce_data_structures.mm */; };
 		51E8C67022D706090E21D696 /* PluginEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B0738F9931D1B26631058C10 /* PluginEditor.cpp */; };
+		59799B191F65E3FF0028E9F6 /* DetectorMatrix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 59799B171F65E3FF0028E9F6 /* DetectorMatrix.cpp */; };
 		59F2D08B1F617794003F8347 /* RecentFilesMenuTemplate.nib in Resources */ = {isa = PBXBuildFile; fileRef = AA72A8F3EBA3DF2FAC662D47 /* RecentFilesMenuTemplate.nib */; };
 		59F2D08C1F617794003F8347 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56FCA5715366D4DCFB7DF598 /* Accelerate.framework */; };
 		59F2D08D1F617794003F8347 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F958F053FF9AF5245622EFB2 /* AudioToolbox.framework */; };
@@ -54,7 +55,6 @@
 		59F2D0DD1F617BE1003F8347 /* Utilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 59F2D0A71F6177EA003F8347 /* Utilities.cpp */; };
 		59F2D0DE1F617BF2003F8347 /* AnalysisEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 59F2D0C31F6177EA003F8347 /* AnalysisEditor.cpp */; };
 		59F2D0DF1F617BF4003F8347 /* AnalysisMeter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 59F2D0C51F6177EA003F8347 /* AnalysisMeter.cpp */; };
-		59F2D0E11F617BFB003F8347 /* JDEnvelopeGUI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 59F2D0CC1F6177EA003F8347 /* JDEnvelopeGUI.cpp */; };
 		59F2D0E21F617BFC003F8347 /* LookAndFeel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 59F2D0CE1F6177EA003F8347 /* LookAndFeel.cpp */; };
 		59F2D0E31F617BFF003F8347 /* SignalDisplayUI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 59F2D0D01F6177EA003F8347 /* SignalDisplayUI.cpp */; };
 		59F2D0E61F617C1F003F8347 /* libessentia.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 59F2D0E51F617C1F003F8347 /* libessentia.a */; };
@@ -581,6 +581,8 @@
 		59712C92AD71C9FF87C124C1 /* juce_Javascript.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_Javascript.cpp; path = ../../../../../JUCE/modules/juce_core/javascript/juce_Javascript.cpp; sourceTree = SOURCE_ROOT; };
 		59726A450BF94190829CA6AB /* juce_StretchableLayoutResizerBar.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_StretchableLayoutResizerBar.cpp; path = ../../../../../JUCE/modules/juce_gui_basics/layout/juce_StretchableLayoutResizerBar.cpp; sourceTree = SOURCE_ROOT; };
 		5977EEDD9267C6D691C3F226 /* AUMIDIBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AUMIDIBase.h; path = ../../../../../JUCE/modules/juce_audio_plugin_client/AU/CoreAudioUtilityClasses/AUMIDIBase.h; sourceTree = SOURCE_ROOT; };
+		59799B171F65E3FF0028E9F6 /* DetectorMatrix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DetectorMatrix.cpp; sourceTree = "<group>"; };
+		59799B181F65E3FF0028E9F6 /* DetectorMatrix.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = DetectorMatrix.hpp; sourceTree = "<group>"; };
 		598D87FFE64AAF3A8F066673 /* juce_ThreadPool.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_ThreadPool.cpp; path = ../../../../../JUCE/modules/juce_core/threads/juce_ThreadPool.cpp; sourceTree = SOURCE_ROOT; };
 		59935D5ABC6BBAE9E59B262E /* crc32.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = crc32.h; path = ../../../../../JUCE/modules/juce_core/zip/zlib/crc32.h; sourceTree = SOURCE_ROOT; };
 		599C767578908DB3DF2C73A2 /* juce_Primes.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = juce_Primes.cpp; path = ../../../../../JUCE/modules/juce_cryptography/encryption/juce_Primes.cpp; sourceTree = SOURCE_ROOT; };
@@ -618,8 +620,6 @@
 		59F2D0C41F6177EA003F8347 /* AnalysisEditor.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = AnalysisEditor.hpp; sourceTree = "<group>"; };
 		59F2D0C51F6177EA003F8347 /* AnalysisMeter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AnalysisMeter.cpp; sourceTree = "<group>"; };
 		59F2D0C61F6177EA003F8347 /* AnalysisMeter.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = AnalysisMeter.hpp; sourceTree = "<group>"; };
-		59F2D0CC1F6177EA003F8347 /* JDEnvelopeGUI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = JDEnvelopeGUI.cpp; sourceTree = "<group>"; };
-		59F2D0CD1F6177EA003F8347 /* JDEnvelopeGUI.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = JDEnvelopeGUI.hpp; sourceTree = "<group>"; };
 		59F2D0CE1F6177EA003F8347 /* LookAndFeel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LookAndFeel.cpp; sourceTree = "<group>"; };
 		59F2D0CF1F6177EA003F8347 /* LookAndFeel.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = LookAndFeel.hpp; sourceTree = "<group>"; };
 		59F2D0D01F6177EA003F8347 /* SignalDisplayUI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SignalDisplayUI.cpp; sourceTree = "<group>"; };
@@ -2532,8 +2532,6 @@
 			isa = PBXGroup;
 			children = (
 				59F2D0C21F6177EA003F8347 /* AnalysisEditor */,
-				59F2D0CC1F6177EA003F8347 /* JDEnvelopeGUI.cpp */,
-				59F2D0CD1F6177EA003F8347 /* JDEnvelopeGUI.hpp */,
 				59F2D0CE1F6177EA003F8347 /* LookAndFeel.cpp */,
 				59F2D0CF1F6177EA003F8347 /* LookAndFeel.hpp */,
 				59F2D0D01F6177EA003F8347 /* SignalDisplayUI.cpp */,
@@ -2551,6 +2549,8 @@
 				59F2D0C41F6177EA003F8347 /* AnalysisEditor.hpp */,
 				59F2D0C51F6177EA003F8347 /* AnalysisMeter.cpp */,
 				59F2D0C61F6177EA003F8347 /* AnalysisMeter.hpp */,
+				59799B171F65E3FF0028E9F6 /* DetectorMatrix.cpp */,
+				59799B181F65E3FF0028E9F6 /* DetectorMatrix.hpp */,
 			);
 			path = AnalysisEditor;
 			sourceTree = "<group>";
@@ -4230,7 +4230,6 @@
 				59F2D0DC1F617BDD003F8347 /* Convolver.cpp in Sources */,
 				59F2D0DE1F617BF2003F8347 /* AnalysisEditor.cpp in Sources */,
 				59F2D0DF1F617BF4003F8347 /* AnalysisMeter.cpp in Sources */,
-				59F2D0E11F617BFB003F8347 /* JDEnvelopeGUI.cpp in Sources */,
 				59F2D0E21F617BFC003F8347 /* LookAndFeel.cpp in Sources */,
 				59F2D0E31F617BFF003F8347 /* SignalDisplayUI.cpp in Sources */,
 				CA852FC2FB9113D0D90B6BE5 /* juce_audio_basics.mm in Sources */,
@@ -4256,6 +4255,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				59799B191F65E3FF0028E9F6 /* DetectorMatrix.cpp in Sources */,
 				DF04215014A07614E8DFB75F /* juce_audio_plugin_client_VST2.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -4593,6 +4593,7 @@
 		};
 		F1FDF51C7FB7A68FEA8A55B9 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 59F2D0D81F617A52003F8347 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -4621,7 +4622,7 @@
 				0901EF1B019CD5DF71A191C8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		591B75208A50466E6106FCC0 /* Build configuration list for PBXProject "jd_CMatrix" */ = {
 			isa = XCConfigurationList;
@@ -4630,7 +4631,7 @@
 				F1FDF51C7FB7A68FEA8A55B9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		9B5C40490C85C53D172862BD /* Build configuration list for PBXNativeTarget "jd_CMatrix (AU)" */ = {
 			isa = XCConfigurationList;
@@ -4639,7 +4640,7 @@
 				1A08A077F60442E4CF266795 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		A3481A989F9E42CD855FBCDF /* Build configuration list for PBXNativeTarget "jd_CMatrix (VST)" */ = {
 			isa = XCConfigurationList;
@@ -4648,7 +4649,7 @@
 				5D142A2AC502825DEFFADABF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 		D89803F86A3B554F7DBDCB19 /* Build configuration list for PBXNativeTarget "jd_CMatrix (Shared Code)" */ = {
 			isa = XCConfigurationList;
@@ -4657,7 +4658,7 @@
 				839CD0890EBB5BAB4C7FD15B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

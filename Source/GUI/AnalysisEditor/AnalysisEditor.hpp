@@ -11,6 +11,7 @@
 #include "AnalysisMeter.hpp"
 #include "IRSelector.hpp"
 #include "LookAndFeel.hpp"
+#include "DetectorMatrix.hpp"
 
 class AnalysisEditor : public Component,
 public Slider::Listener,
@@ -63,6 +64,8 @@ public:
     void deselectAllDetectionSettings();
     
     
+    using GateCode = Jd_cmatrixAudioProcessor::GateCode;
+    
     Jd_cmatrixAudioProcessor& processor;
     OwnedArray<SignalDrawer>& waveformViewers { processor.waveformViewers };
     WaveformDisplay waveformDisplay;
@@ -96,40 +99,45 @@ public:
     
     int currentEnvelopeIndex {-1};
 
-    ComboBox envelopeComboBox;
+    ComboBox setEnvelopeComboBox;
     OwnedArray<Slider> envelopeAttackTimeKnobs;
     OwnedArray<Slider> envelopeDecayTimeKnobs;
     OwnedArray<Slider> envelopeSustainTimeKnobs;
     OwnedArray<Slider> envelopeReleaseTimeKnobs;
     OwnedArray<Slider> envelopeLevelKnobs;
 
+    ApplicationProperties properties;
+    
     OwnedArray<ToggleButton> shouldApplyEnvelopeToIRButtons;
     
     //METERS
     OwnedArray<AnalysisMeter> meters;
     
-    OwnedArray<ComboBox> meterIRTriggerModeBoxes;
-    OwnedArray<ComboBox> meterIRReleaseModeBoxes;
-    OwnedArray<ComboBox> shouldInvertEnabledbRangeComboBoxes;
+    OwnedArray<ComboBox> triggerConditionComboBoxes;
+    OwnedArray<ComboBox> releaseConditionComboBoxes;
     OwnedArray<ComboBox> setEnvelopeModeBoxes;
     OwnedArray<TextButton> loadIRButtons;
-    OwnedArray<TextButton> editDetectorButtons;
     
     CmatrixLookAndFeel lookAndFeel;
     
     ComboBox gainPaddingDBSelection;
+    std::array<float, 3> paddingGains {-18.f, 0.f, 12.f};
+    
+    //DetectorMatrix
+    ComboBox matrixDetectorBox;
+    OwnedArray<DetectorMatrix> detectorMatrices;
+    
+    
     Slider wetGainDBSlider;
     Slider dryGainDBSlider;
-    
-    //outputAnalysisData
-    //ComboBox
-    
-    //Link Smoothness To Envelope Attack
     
     Rectangle<int> detectorDrawingBounds;
     Rectangle<int> analysisSettingBounds;
     Rectangle<int> meterBounds;
     Rectangle<int> masterControlBounds;
+    Rectangle<int> envelopeParameterPanel;
+    Rectangle<int> conditionPanel;
+    
     
 };
 

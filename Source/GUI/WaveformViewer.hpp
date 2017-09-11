@@ -14,7 +14,7 @@ public:
     {
         bufferPos = 0;
         bufferSize = 2048;
-        circularBuffer = (float*)malloc(sizeof (float) * bufferSize);
+        circularBuffer.resize(bufferSize);
 //        memset(circularBuffer, 0.f, sizeof(float) * bufferSize);
         clear();
         currentInputLevel = 0.0f;
@@ -24,7 +24,6 @@ public:
     }
     ~SignalDrawer()
     {
-        free(circularBuffer);
     }
     void paint (Graphics& g)
     {
@@ -46,7 +45,7 @@ public:
             const float level = circularBuffer [(bp + bufferSize - samplesAgo) % bufferSize];
             float xf = static_cast<float>(x);
             
-            p.lineTo(xf, heightf - heightf * std::min(level, 0.99999f));
+            p.lineTo(xf, heightf - heightf * level);
         }
     
         g.strokePath(p, PathStrokeType(1));
@@ -69,7 +68,7 @@ public:
     }
     void clear ()
     {
-        zeromem (circularBuffer, sizeof (float) * bufferSize);
+        circularBuffer.clear();
     }
     void setSamplesToAverage (size_t newSamplesToAverage)
     {
@@ -87,7 +86,7 @@ public:
 
 private:
     bool isActive {true};
-    float* circularBuffer;
+    std::vector<float> circularBuffer;
     float currentInputLevel;
     Colour lineColour;
     int volatile bufferPos, bufferSize, numSamplesIn, samplesToAverage = 128;

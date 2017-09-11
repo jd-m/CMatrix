@@ -5,7 +5,6 @@
 void AnalysisMeter::AnalysisMeterBar::paint(juce::Graphics &g)
 {
     auto r = getLocalBounds();
-    g.drawRect(getLocalBounds());
     
     if (((AnalysisMeter*)getParentComponent())->enableButton.getToggleState()) {
         if (isWithinRange())
@@ -26,6 +25,9 @@ void AnalysisMeter::AnalysisMeterBar::paint(juce::Graphics &g)
     
     g.fillRect(threshBounds);
     
+    g.setColour(Colours::black);
+    g.drawRect(getLocalBounds());
+    
 }
 //============================================================================
 void AnalysisMeter::AnalysisMeterBar::setLevel(const float level)
@@ -45,7 +47,7 @@ void AnalysisMeter::AnalysisMeterBar::setRange(const float min, const float max)
 //============================================================================
 bool AnalysisMeter::AnalysisMeterBar::isWithinRange()
 {
-    return rangeIsInverted ? m_range.contains(1. - m_level) : !m_range.contains(1. - m_level);
+    return rangeIsInverted ?  !m_range.contains(1. - m_level) : m_range.contains(1. - m_level);
 }
 //====================================================================
 /* Analysis Meter */
@@ -70,25 +72,56 @@ detector(sourceDetector)
     addAndMakeVisible(enableButton);
     enableButton.addListener(this);
     
+    addAndMakeVisible(invertRangeButton);
+    invertRangeButton.addListener(this);
+    
     startTimerHz(30);
     
     enableButton.setLookAndFeel(&lookAndFeel);
+    invertRangeButton.setLookAndFeel(&lookAndFeel);
+    
+    setOpaque(true);
 }
 //============================================================================
 void AnalysisMeter::paint(juce::Graphics &g)
 {
     g.drawRoundedRectangle(getLocalBounds().toFloat(), 5.f, 1.f);
+    
+    g.drawText("on",
+               enableButton.getBounds().getX(),
+               enableButton.getBounds().getBottom(),
+               enableButton.getBounds().getWidth(),
+               20,
+               Justification::centred);
+    
+    g.drawText("inv",
+               invertRangeButton.getBounds().getX(),
+               invertRangeButton.getBounds().getBottom(),
+               invertRangeButton.getBounds().getWidth(),
+               20,
+               Justification::centred);
+    
+    g.fillAll(Colours::darkgrey);
+
+    g.setColour(Colours::black);
+    g.drawRect(getLocalBounds());
+    
 }
 //============================================================================
 void AnalysisMeter::resized()
 {
     auto r = getLocalBounds();
+    
     nameLabel.setBounds(r.removeFromTop(20));
     
     thresholdSlider.setBounds(r.removeFromLeft(25));
     meterBar.setBounds(r.removeFromLeft(25).reduced(2, 5));
     
     enableButton.setBounds(r.removeFromTop(r.getWidth()).reduced(6));
+    
+    invertRangeButton.setBounds(enableButton.getBounds().translated(0, 70));
+    
+    
 }
 //============================================================================
 void AnalysisMeter::sliderValueChanged(juce::Slider *slider)
@@ -133,15 +166,16 @@ void AnalysisMeter::sliderValueChanged(juce::Slider *slider)
 void AnalysisMeter::buttonClicked(juce::Button *button)
 {
     if(button == &enableButton)
-    {
         detector.setEnabled(button->getToggleState());
-    }
+    if (button == &invertRangeButton)
+        setRangeIsInverted(button->getToggleState());
 }
 //============================================================================
 void AnalysisMeter::timerCallback()
 {
     meterBar.setLevel(detector.normalisedScaledOutput());
     meterBar.repaint();
+
 }
 //============================================================================
 void AnalysisMeter::setName(const juce::String meterName)
@@ -153,6 +187,5 @@ void AnalysisMeter::setName(const juce::String meterName)
 void AnalysisMeter::setRangeIsInverted(bool shouldInvertRange)
 {
     meterBar.rangeIsInverted = shouldInvertRange;
-    
 }
     

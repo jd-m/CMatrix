@@ -26,6 +26,8 @@ processor(p)
     setActiveDetector.addItemList({"level", "pitch", "pitch confidence", "pitch_salnce", "inharmoncity" , "all"}, 1);
     setActiveDetector.addListener(this);
     
+    auto meterNames = {"amp", "pitch", "pitch confidence", "pitch salience", "inharmonicity"};
+
     //ANALYSIS METERS
     
     for (int i = 0; i < NUM_DETECTORS; i++)
@@ -33,6 +35,8 @@ processor(p)
         auto& d = processor.detectors[i];
         auto m = new AnalysisMeter(d);
         addAndMakeVisible(m);
+        m->invertRangeButton.addListener(this);
+        m->enableButton.addListener(this);
         m->thresholdSlider.setRange(d.limits.lower, d.limits.upper);
     
         meters.add(m);
@@ -83,27 +87,33 @@ processor(p)
         samplesPerPixelKnobs.add(newSamplesPerPixelKnob);
     
         
-        auto meterIRTriggerModeBox = new ComboBox();
-        addAndMakeVisible(meterIRTriggerModeBox);
-        meterIRTriggerModeBox->addItemList({"exitFromBelow",
-                                        "entryToBelow",
-                                        "entryToAbove",
-                                        "exitFromAbove" }, 1);
+        auto triggerConditionNames = {"exitFromBelow",
+            "entryToBelow",
+            "entryToAbove",
+            "exitFromAbove",
+            "entryToRange",
+            "exitFromRange" };
+        auto newTriggerConditionComboBox = new ComboBox();
+        addAndMakeVisible(newTriggerConditionComboBox);
+        newTriggerConditionComboBox->addListener(this);
+        newTriggerConditionComboBox->addItemList(triggerConditionNames, 1);
+        newTriggerConditionComboBox->setSelectedItemIndex(0);
+        triggerConditionComboBoxes.add(newTriggerConditionComboBox);
         
-        meterIRTriggerModeBoxes.add(meterIRTriggerModeBox);
+        auto newReleaseConditionComboBox = new ComboBox();
+        addAndMakeVisible(newReleaseConditionComboBox);
+        newReleaseConditionComboBox->addListener(this);
+        newReleaseConditionComboBox->addItemList(triggerConditionNames, 1);
+        newReleaseConditionComboBox->setSelectedItemIndex(0);
         
-        auto newShouldInvertEnabledRangeComboBox = new ComboBox();
-        addAndMakeVisible(newShouldInvertEnabledRangeComboBox);
-        newShouldInvertEnabledRangeComboBox->addItemList({"inside","outside"}, 1);
-        newShouldInvertEnabledRangeComboBox->setSelectedId(1);
-        newShouldInvertEnabledRangeComboBox->addListener(this);
-        shouldInvertEnabledbRangeComboBoxes.add(newShouldInvertEnabledRangeComboBox);
+        releaseConditionComboBoxes.add(newReleaseConditionComboBox);
         
+
         auto setEnvelopeModeBox = new ComboBox();
         addAndMakeVisible(setEnvelopeModeBox);
         setEnvelopeModeBox->addListener(this);
+        setEnvelopeModeBox->setSelectedItemIndex(0);
         setEnvelopeModeBox->addItemList({"oneshot", "sustain"}, 1);
-        setEnvelopeModeBox->setSelectedId(1);
         setEnvelopeModeBoxes.add(setEnvelopeModeBox);
         
         auto newLoadIRButton = new TextButton();
@@ -111,18 +121,12 @@ processor(p)
         newLoadIRButton->addListener(this);
         addAndMakeVisible(newLoadIRButton);
         loadIRButtons.set( i, newLoadIRButton);
-        
-        auto newEditDetectorButton = new TextButton();
-        newEditDetectorButton->setButtonText("edit dtc");
-        newEditDetectorButton->addListener(this);
-        addAndMakeVisible(newEditDetectorButton);
-        editDetectorButtons.set( i, newEditDetectorButton);
-        
   
         auto newEnvelopeAttackSlider = new Slider(
                                                     Slider::SliderStyle::RotaryHorizontalVerticalDrag,
                                                     Slider::TextBoxBelow);
         newEnvelopeAttackSlider->setRange(0.1, 20.);
+        newEnvelopeAttackSlider->setTextBoxStyle(Slider::TextBoxBelow, false, 50, 20);
         addChildComponent(newEnvelopeAttackSlider);
         newEnvelopeAttackSlider->addListener(this);
         envelopeAttackTimeKnobs.add(newEnvelopeAttackSlider);
@@ -132,6 +136,7 @@ processor(p)
                                                   Slider::TextBoxBelow);
         newEnvelopeDecaySlider->setRange(0.1, 20.);
         addChildComponent(newEnvelopeDecaySlider);
+        newEnvelopeDecaySlider->setTextBoxStyle(Slider::TextBoxBelow, false, 50, 20);
         newEnvelopeDecaySlider->addListener(this);
         envelopeDecayTimeKnobs.add(newEnvelopeDecaySlider);
         
@@ -154,17 +159,21 @@ processor(p)
         auto newEnvelopeLevelSlider = new Slider(
                                                    Slider::SliderStyle::RotaryHorizontalVerticalDrag,
                                                    Slider::TextBoxBelow);
-        newEnvelopeLevelSlider->setRange(-80,6);
+        newEnvelopeLevelSlider->setRange(-80.,6.);
         addChildComponent(newEnvelopeLevelSlider);
         newEnvelopeLevelSlider->addListener(this);
         envelopeLevelKnobs.add(newEnvelopeLevelSlider);
         
+        
+        //MATRIX
+        auto newDetectorMatrix = new DetectorMatrix(p, i);
+        addChildComponent(newDetectorMatrix);
+        detectorMatrices.add(newDetectorMatrix);
     }
-    
     
     {
         int i = 0;
-        for (auto meterName : {"amp", "pitch", "pitch confidence", "pitch salience", "inharmonicity"})
+        for (auto meterName : meterNames)
             meters[i++]->setName(meterName);
     }
         
@@ -172,16 +181,39 @@ processor(p)
     meters[LEVEL]->thresholdSlider.setSkewFactor(0.5, true);
     
     
+    addAndMakeVisible(matrixDetectorBox);
+    matrixDetectorBox.addListener(this);
+    matrixDetectorBox.addItemList(meterNames, 1);
+    matrixDetectorBox.setSelectedItemIndex(0);
+    
+    //Env PAram Selection
+    addAndMakeVisible(setEnvelopeComboBox);
+    setEnvelopeComboBox.addListener(this);
+    setEnvelopeComboBox.addItemList(meterNames, 1);
+    setEnvelopeComboBox.setSelectedItemIndex(0);
+    
     
     addAndMakeVisible(dryGainDBSlider);
+    dryGainDBSlider.addListener(this);
     dryGainDBSlider.setRange(-120., 12.);
     dryGainDBSlider.setTextBoxStyle(Slider::TextBoxLeft, false, 30, 15);
     dryGainDBSlider.setSliderStyle(Slider::SliderStyle::LinearBarVertical);
     
     addAndMakeVisible(wetGainDBSlider);
+    wetGainDBSlider.addListener(this);
     wetGainDBSlider.setRange(-120.f, 12.f);
     wetGainDBSlider.setTextBoxStyle(Slider::TextBoxLeft, false, 30, 15);
     wetGainDBSlider.setSliderStyle(Slider::SliderStyle::LinearBarVertical);
+    
+    
+    addAndMakeVisible(gainPaddingDBSelection);
+    gainPaddingDBSelection.addListener(this);
+    {int i = 1;
+        for (auto paddingGain : paddingGains) {
+            gainPaddingDBSelection.addItem(String(paddingGain), i++);
+            gainPaddingDBSelection.setSelectedItemIndex(0);
+        }
+    }
    
 }
 //=====================================================================
@@ -190,15 +222,55 @@ void AnalysisEditor::paint(Graphics& g)
     auto r = getLocalBounds();
     auto top = r.removeFromTop(250);
     
-    g.fillAll(Colours::lightgrey);
+    g.fillAll(Colours::darkgrey);
     
     g.setColour(Colours::black);
     g.drawRect(top);
+
+    g.fillRect(detectorDrawingBounds);
+    
+    
+    g.drawRoundedRectangle(envelopeParameterPanel.toFloat(), 10.f, 2);
+    g.setColour(Colours::lightgrey);
+    
+    g.drawText("envelope parameters",
+               envelopeParameterPanel.getCentreX() - 70,
+               envelopeParameterPanel.getY(),
+               140,
+               30, Justification::centred);
     
     
     
-    g.fillRect(detectorDrawingBounds);;
+    auto drawEnvParamLabel = [&](String name, OwnedArray<Slider>& envParams){
+        g.setColour(Colours::darkorange.withAlpha(0.8f));
+        auto paramBounds = envParams.getFirst()->getBounds();
+        g.drawText(name,
+                   paramBounds.getX() - 30,
+                   paramBounds.getBottom(),
+                   paramBounds.getWidth() + 60,
+                   20,
+                   Justification::centred);
+    };
     
+    drawEnvParamLabel("ATK", envelopeAttackTimeKnobs);
+    drawEnvParamLabel("DEC", envelopeDecayTimeKnobs);
+    drawEnvParamLabel("SUS", envelopeSustainTimeKnobs);
+    drawEnvParamLabel("REL", envelopeReleaseTimeKnobs);
+    drawEnvParamLabel("GAIN", envelopeLevelKnobs);
+    
+    drawEnvParamLabel("ATK", attackTimeKnobs);
+    drawEnvParamLabel("RELEASE", releaseTimeKnobs);
+    drawEnvParamLabel("RMS SIZE", rmsKnobs);
+    drawEnvParamLabel("SMOOTH", smoothingSpeedKnobs);
+
+//    g.drawText("ATK", envelopeDecayTimeBounds.translated(0, 50).withSize(70, 20));
+//    g.drawText("ATK", envelopeSustainTimeBounds.translated(0, 50).withSize(70, 20));
+//    g.drawText("ATK", envelopeReleaseTimeBounds.translated(0, 50).withSize(70, 20));
+    
+    g.drawText("WET", wetGainDBSlider.getBounds().withHeight(20).translated(-40,50), Justification::right);
+    g.drawText("DRY", dryGainDBSlider.getBounds().withHeight(20).translated(-40,50), Justification::right);
+    g.setColour(Colours::lightgrey);
+    g.drawRoundedRectangle(masterControlBounds.toFloat(), 5.f, 4);
 }
 //=====================================================================
 void AnalysisEditor::resized()
@@ -231,6 +303,7 @@ void AnalysisEditor::positionDetectorDrawing(const Rectangle<int>& sectionBounds
     {
         waveformViewers[i]->setBounds(waveformViewerBounds);
     }
+    waveformDisplay.setBounds(sectionBounds);
 }
 //=====================================================================
 void AnalysisEditor::positionDetectorSettings(const Rectangle<int>& sectionBounds)
@@ -247,11 +320,11 @@ void AnalysisEditor::positionDetectorSettings(const Rectangle<int>& sectionBound
     auto left = b.removeFromLeft(90);
     
     auto attackTimeKnobBounds = left.removeFromTop(75).reduced(5);
-    auto rmsKnobBounds = left.removeFromTop(75).reduced(5);
+    auto rmsKnobBounds = left.removeFromTop(75).reduced(5).translated(0, 10);
     
     auto right = b;
-    auto releaseTimeKnob = right.removeFromTop(75).reduced(5);
-    auto smoothingSpeedKnob = right.removeFromTop(75).reduced(5);
+    auto releaseTimeKnob = right.removeFromTop(75).reduced(2);
+    auto smoothingSpeedKnob = right.removeFromTop(75).reduced(5).translated(0, 10);
     
     for (int i = 0; i < NUM_DETECTORS; i++)
     {
@@ -269,6 +342,9 @@ void AnalysisEditor::positionMeters(const Rectangle<int>& sectionBounds)
     auto meterBounds = sectionBounds;
     for (auto meter : meters)
         meter->setBounds(meterBounds.removeFromLeft(100));
+    
+    for (auto matrix : detectorMatrices)
+        matrix->setBounds(meterBounds);
 }
 //=====================================================================
 void AnalysisEditor::positionMeterButtons(const Rectangle<int>& sectionBounds)
@@ -283,17 +359,20 @@ void AnalysisEditor::positionMeterButtons(const Rectangle<int>& sectionBounds)
                                                .removeFromTop(30)
                                                .reduced(3));
 
-        meterIRTriggerModeBoxes[i]->setBounds(  meterIrColumn
+        triggerConditionComboBoxes[i]->setBounds(  meterIrColumn
                                                 .removeFromTop(30)
                                                 .reduced(3));
+        
+        releaseConditionComboBoxes[i]->setBounds(  meterIrColumn
+                                                 .removeFromTop(30)
+                                                 .reduced(3));
 
         loadIRButtons[i]->setBounds(  meterIrColumn
                                               .removeFromTop(30)
                                               .reduced(3));
-        editDetectorButtons[i]->setBounds(  meterIrColumn
-                                    .removeFromTop(30)
-                                    .reduced(3));
+    
     }
+
 }
 //=====================================================================
 void AnalysisEditor::positionEditPanel(const Rectangle<int>& sectionBounds)
@@ -301,15 +380,17 @@ void AnalysisEditor::positionEditPanel(const Rectangle<int>& sectionBounds)
     auto editPanelBounds = sectionBounds;
     editPanelBounds = editPanelBounds.removeFromLeft(300);
     
-    auto left = editPanelBounds.removeFromLeft(100).reduced(5);
-    auto right = editPanelBounds.removeFromTop(sectionBounds.getHeight() - 25).reduced(5).translated(0, 25);
+    envelopeParameterPanel = editPanelBounds;
+    
+    setEnvelopeComboBox.setBounds(editPanelBounds.removeFromTop(20).withSize(80, 15).translated(110, 35));
+    auto left = editPanelBounds.removeFromLeft(120).reduced(10);
+    auto right = editPanelBounds.removeFromTop(sectionBounds.getHeight() - 45).reduced(5).translated(0, 35);
     
     auto envelopeAttackTimeBounds = left.removeFromTop(50);
     auto envelopeDecayTimeBounds = right.removeFromTop(50);
-    auto envelopeSustainTimeBounds = left.removeFromTop(50);
-    auto envelopeReleaseTimeBounds = right.removeFromTop(50);
-    auto envelopeLevelBounds = left.removeFromTop(50);
-    
+    auto envelopeSustainTimeBounds = envelopeAttackTimeBounds.translated(0,75);
+    auto envelopeReleaseTimeBounds = envelopeDecayTimeBounds.translated(0, 75);
+    auto envelopeLevelBounds = envelopeSustainTimeBounds.translated(0, 75);
     
     for (auto k : envelopeAttackTimeKnobs)
         k->setBounds(envelopeAttackTimeBounds);
@@ -329,9 +410,9 @@ void AnalysisEditor::positionMasterPanel(const Rectangle<int>& sectionBounds)
     auto b = sectionBounds;
     
     auto left = b.removeFromLeft(100);
-    wetGainDBSlider.setBounds(left.reduced(40, 20));
+    wetGainDBSlider.setBounds(left.reduced(32, 20).translated(15, 0));
     auto right = b;
-    dryGainDBSlider.setBounds(right.reduced(40, 20));
+    dryGainDBSlider.setBounds(right.reduced(32, 20));
 }
 //=====================================================================
 void AnalysisEditor::sliderValueChanged(juce::Slider *slider)
@@ -391,10 +472,16 @@ void AnalysisEditor::sliderValueChanged(juce::Slider *slider)
     if (envelopeLevelKnobs.contains(slider))
     {
         int index = getIndexOfItemInArray(envelopeLevelKnobs, slider);
-        processor.convolutionEnvelopes[index].mul = slider->getValue();
-    }
-
     
+        processor.convolutionEnvelopes[index].mul = jd::dbamp(slider->getValue());
+    }
+    //WET
+    if (slider == &wetGainDBSlider)
+        processor.wetGainDB.setTarget(jd::dbamp(slider->getValue()));
+    
+    if (slider == &dryGainDBSlider) {
+        processor.dryGainDB.setTarget(jd::dbamp(slider->getValue()));
+    }
     
 }
 //=====================================================================
@@ -412,45 +499,28 @@ void AnalysisEditor::buttonClicked(Button* changedButton)
             }
         }
     
-    
-    if (editDetectorButtons.contains(dynamic_cast<TextButton*>(changedButton)))
+    {int index = 0;
+    for (auto meter : meters)
     {
-        
-        int index = getIndexOfItemInArray(editDetectorButtons, changedButton);
-        
-        deselectAllEnvelopes();
-            
-        if (index == currentEnvelopeIndex) {
-            currentEnvelopeIndex = -1;
-        } else {
-        
-            envelopeAttackTimeKnobs[index]->setVisible(true);
-            envelopeAttackTimeKnobs[index]->setEnabled(true);
-            
-            envelopeDecayTimeKnobs[index]->setVisible(true);
-            envelopeDecayTimeKnobs[index]->setEnabled(true);
-            
-            envelopeReleaseTimeKnobs[index]->setVisible(true);
-            envelopeReleaseTimeKnobs[index]->setEnabled(true);
-            
-            envelopeSustainTimeKnobs[index]->setVisible(true);
-            envelopeSustainTimeKnobs[index]->setEnabled(true);
-            
-            envelopeLevelKnobs[index]->setVisible(true);
-            envelopeLevelKnobs[index]->setEnabled(true);
-            currentEnvelopeIndex = index;
+        if( changedButton == &meter->invertRangeButton)
+        {
+            processor.shouldReverseEnabledRange[index] = changedButton->getToggleState();
+            break;
         }
-        
+        index++;
+    }}
     
-    }
-    
-    
-    if (shouldInvertEnabledbRangeButtons.contains(dynamic_cast<ToggleButton*>(changedButton)))
+    {int index = 0;
+    for (auto meter : meters)
     {
-        int index = getIndexOfItemInArray(shouldInvertEnabledbRangeButtons, changedButton);
-        
-        processor.shouldReverseEnabledRange[index] = changedButton->getToggleState();
-    }
+        if( changedButton == &meter->enableButton)
+        {
+            processor.convolutionEnabled[index] = changedButton->getToggleState();
+            break;
+        }
+        index++;
+    }}
+
 }
 //=====================================================================
 void AnalysisEditor::comboBoxChanged(juce::ComboBox *comboBox)
@@ -478,6 +548,13 @@ void AnalysisEditor::comboBoxChanged(juce::ComboBox *comboBox)
 
                 bool indexIsActive = (index == (activeWaveform));
                 
+                if (activeWaveform == LEVEL)
+                    waveformDisplay.setMode(WaveformDisplay::LOG_AMP);
+                else if
+                    (activeWaveform == PITCH ) waveformDisplay.setMode(WaveformDisplay::LOG_FREQ);
+                else
+                    waveformDisplay.setMode(WaveformDisplay::LIN);
+                
                 w->setIsActive(indexIsActive );
                 
                 attackTimeKnobs[index]->setVisible(indexIsActive);
@@ -500,23 +577,117 @@ void AnalysisEditor::comboBoxChanged(juce::ComboBox *comboBox)
     }
     
     //METER
-    for (auto meterIrTriggerModeBox : meterIRTriggerModeBoxes)
-        if (comboBox == meterIrTriggerModeBox)
-        {
-            int itemID = comboBox->getSelectedItemIndex();
-            setMeterTriggerMode(itemID);
-        }
-
+    if (triggerConditionComboBoxes.contains(comboBox))
+    {
+        int index = getIndexOfItemInArray(triggerConditionComboBoxes, comboBox);
+        
+        auto gateCode = static_cast<GateCode>(comboBox->getSelectedItemIndex() );
+        
+        std::cout <<  gateCode << std::endl;
+        if (gateCode == GateCode::onExitFromBelow)
+            processor.triggerConditions[index] = {1,0,0,0};
+        
+        if (gateCode == GateCode::onEntryToBelow)
+            processor.triggerConditions[index] = {0,1,0,0};
+        
+        if (gateCode == GateCode::onExitToAbove)
+            processor.triggerConditions[index] = {0,0,1,0};
+        
+        if (gateCode == GateCode::onEntryFromAbove)
+            processor.triggerConditions[index] = {0,0,0,1};
+        
+        if (gateCode == GateCode::onEntryToRange)
+            processor.triggerConditions[index] = {1,0,0,1};
+        
+        if (gateCode == GateCode::onExitFromRange)
+            processor.triggerConditions[index] = {0,1,1,0};
+   
+    }
+    
+    if (releaseConditionComboBoxes.contains(comboBox))
+    {
+        int index = getIndexOfItemInArray(releaseConditionComboBoxes, comboBox);
+        
+        auto gateCode = static_cast<GateCode>(comboBox->getSelectedItemIndex() );
+        
+        std::cout <<  gateCode << std::endl;
+        if (gateCode == GateCode::onExitFromBelow)
+            processor.releaseConditions[index] = {1,0,0,0};
+        
+        if (gateCode == GateCode::onEntryToBelow)
+            processor.releaseConditions[index] = {0,1,0,0};
+        
+        if (gateCode == GateCode::onExitToAbove)
+            processor.releaseConditions[index] = {0,0,1,0};
+        
+        if (gateCode == GateCode::onEntryFromAbove)
+            processor.releaseConditions[index] = {0,0,0,1};
+        
+        if (gateCode == GateCode::onEntryToRange)
+            processor.releaseConditions[index] = {1,0,0,1};
+        
+        if (gateCode == GateCode::onExitFromRange)
+            processor.releaseConditions[index] = {0,1,1,0};
+    }
+    
     if (setEnvelopeModeBoxes.contains(comboBox)) {
         int envelopeMode = comboBox->getSelectedItemIndex();
         int index = getIndexOfItemInArray(setEnvelopeModeBoxes, comboBox);
-        processor.envelopeModes[index] = static_cast<EnvelopeMode>(envelopeMode);
+        
+        if (envelopeMode == EnvelopeMode::oneShot) {
+            processor.convolutionEnvelopes[index].setSustainNodes({});
+        } else {
+            processor.convolutionEnvelopes[index].setSustainNodes({2});
+        }
     }
-}
-//=====================================================================
-void AnalysisEditor::setMeterTriggerMode(int itemIndex)
-{
-//    processor.meterTriggerConditions.getReference(itemIndex) = static_cast<TriggerCondition>(itemIndex - 1);
+    
+    if (&matrixDetectorBox == comboBox)
+    {
+        int index = comboBox->getSelectedItemIndex();
+        
+        for(auto matrix : detectorMatrices) {
+            matrix->setVisible(false);
+            matrix->setEnabled(false);
+        }
+        detectorMatrices[index]->setVisible(true);
+        detectorMatrices[index]->setEnabled(true);
+    }
+    
+
+    if (comboBox == &setEnvelopeComboBox)
+    {
+
+        int index = comboBox->getSelectedItemIndex();
+
+        deselectAllEnvelopes();
+        for(auto matrix : detectorMatrices) {
+            matrix->setVisible(false);
+            matrix->setEnabled(false);
+        }
+        
+        detectorMatrices[index]->setVisible(true);
+        detectorMatrices[index]->setEnabled(true);
+
+        envelopeAttackTimeKnobs[index]->setVisible(true);
+        envelopeAttackTimeKnobs[index]->setEnabled(true);
+
+        envelopeDecayTimeKnobs[index]->setVisible(true);
+        envelopeDecayTimeKnobs[index]->setEnabled(true);
+
+        envelopeReleaseTimeKnobs[index]->setVisible(true);
+        envelopeReleaseTimeKnobs[index]->setEnabled(true);
+
+        envelopeSustainTimeKnobs[index]->setVisible(true);
+        envelopeSustainTimeKnobs[index]->setEnabled(true);
+
+        envelopeLevelKnobs[index]->setVisible(true);
+        envelopeLevelKnobs[index]->setEnabled(true);
+        currentEnvelopeIndex = index;
+    
+        
+    
+    }
+    
 }
 //=====================================================================
 void AnalysisEditor::deselectAllEnvelopes()

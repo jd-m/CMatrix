@@ -55,18 +55,22 @@ void Jd_cmatrixAudioProcessorEditor::sliderValueChanged(juce::Slider *slider)
 void Jd_cmatrixAudioProcessorEditor::timerCallback()
 {
     
-//    std::stringstream ss;
+    std::stringstream ss;
 //    std::cout <<  << std::endl;
-//    int i = 0;
+    int i = 0;
 //    for (auto& d : processor.detectors.detectors)
-//    {
-//        ss << "detector: " << i++ << " isWithinRange: " << d.isWithinRange()
+    {
+//        auto& d = processor.detectors[1];
+//        ss << "detector: " << i++ << ""
+//        " outvalue :" << d.output <<
+//        " outvalue normscaled: " << d.normalisedScaledOutput() << "\n";
+//        " isWithinRange: " << d.isWithinRange()
 //        << " low: " << d.rangeChecker.thresholds[0] << " upper: " << d.rangeChecker.thresholds[1] << " output: " << d.output << "\n";
-//    }
+    }
 //
 //    std::cout << ss.str() << std::endl;
 
 //    if (processor.detectors[PITCH_SALIENCE].getGateCode() > -1)
 //        std::cout << processor.detectors[LEVEL].getGateCode() << std::endl;
-//    repaint();
+    repaint();
 }
