@@ -1,0 +1,26 @@
+Readme
+
+CMatrix
+
+TopLeft Panel controls signal analysis speed
+
+Meters control range
+Signals can trigger the envelope on entering and leaving the range 
+whether it happens on exit or entry is set in the box below the meter.
+The top one is the envelope type (oneshot/sustain)
+The next one down is the trigger condition,
+The next one is the release condition.
+Load ir loads the impulse response to convolve
+
+(I didn’t set any limit for file size but probably should have)
+
+The matrix section allows for linking the conditions of meters 
+They are ordered 1-5 top to bottom in the same order as the meters
+A meter cannot select its own matrix box
+Which meter is currently being edited is selected in the envelope box
+
+clicking a button on the left side means the corresponding meter must be within range for this one to trigger
+clicking the one on the right hand side means it must be inactive for this onto trigger
+( The idea is that you can exclude signals based on qualities that might make them bad for convolution, e.g high pitch confidence low pitch salience means the sound is strongly pitched so you may want to avoid processing a particular sound with that)
+If both are unselected they have no effect
+
