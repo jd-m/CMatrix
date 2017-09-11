@@ -262,10 +262,6 @@ void AnalysisEditor::paint(Graphics& g)
     drawEnvParamLabel("RMS SIZE", rmsKnobs);
     drawEnvParamLabel("SMOOTH", smoothingSpeedKnobs);
 
-//    g.drawText("ATK", envelopeDecayTimeBounds.translated(0, 50).withSize(70, 20));
-//    g.drawText("ATK", envelopeSustainTimeBounds.translated(0, 50).withSize(70, 20));
-//    g.drawText("ATK", envelopeReleaseTimeBounds.translated(0, 50).withSize(70, 20));
-    
     g.drawText("WET", wetGainDBSlider.getBounds().withHeight(20).withWidth(25).translated(0, wetGainDBSlider.getHeight() + 5), Justification::centred);
     
     g.drawText("DRY", dryGainDBSlider.getBounds().withHeight(20).withWidth(25).translated(0, dryGainDBSlider.getHeight() + 5), Justification::centred);
@@ -278,8 +274,6 @@ void AnalysisEditor::paint(Graphics& g)
     
 
     g.fillRect(meterBounds.removeFromLeft(100));
-//    g.drawText("IN RNG", withinName.removeFromLeft(50), Justification::centred);
-//    g.drawText("OUT RNG", withinName.removeFromLeft(50), Justification::centred);
 }
 //=====================================================================
 void AnalysisEditor::resized()
@@ -466,7 +460,6 @@ void AnalysisEditor::sliderValueChanged(juce::Slider *slider)
         
         int index = getIndexOfItemInArray(envelopeDecayTimeKnobs, slider);
         processor.convolutionEnvelopes[index].setDecayTime(slider->getValue());
-        std::cout << index << std::endl;
     }
     
     if (envelopeSustainTimeKnobs.contains(slider))
@@ -488,8 +481,10 @@ void AnalysisEditor::sliderValueChanged(juce::Slider *slider)
         processor.convolutionEnvelopes[index].mul = jd::dbamp(slider->getValue());
     }
     //WET
-    if (slider == &wetGainDBSlider)
+    if (slider == &wetGainDBSlider) {
+
         processor.wetGainDB.setTarget(jd::dbamp(slider->getValue()));
+    }
     
     if (slider == &dryGainDBSlider) {
         processor.dryGainDB.setTarget(jd::dbamp(slider->getValue()));
@@ -600,7 +595,6 @@ void AnalysisEditor::comboBoxChanged(juce::ComboBox *comboBox)
         
         auto gateCode = static_cast<GateCode>(comboBox->getSelectedItemIndex() );
         
-        std::cout <<  gateCode << std::endl;
         if (gateCode == GateCode::onExitFromBelow)
             processor.triggerConditions[index] = {1,0,0,0};
         
@@ -627,7 +621,6 @@ void AnalysisEditor::comboBoxChanged(juce::ComboBox *comboBox)
         
         auto gateCode = static_cast<GateCode>(comboBox->getSelectedItemIndex() );
         
-        std::cout <<  gateCode << std::endl;
         if (gateCode == GateCode::onExitFromBelow)
             processor.releaseConditions[index] = {1,0,0,0};
         

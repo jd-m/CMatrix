@@ -113,8 +113,7 @@ struct DetectorUnit {
     //===============================================================
     bool isWithinRange() const
     {
-        return rangeChecker.thresholds[0] < output &&
-        output < rangeChecker.thresholds[1];
+        return rangeChecker.isWithinRange();
     }
     int getGateCode ()
     {

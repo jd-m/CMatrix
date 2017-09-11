@@ -50,7 +50,6 @@ public:
     void setInputs(K k, V& v)
     {
         algorithm->input(k).set(v);
-//        cout << algorithm->name() << ":: key: " << k << " value: " << v << endl;
     }
     
     template<typename K, typename V, class...Pairs>
@@ -85,7 +84,7 @@ public:
     void>::type setOutputs(Coll& coll)
     {
         algorithm->output(coll[I]).set(output<I>());
-//        cout << "output:: " << " key : "<< coll[I] << " value: " << output<I>() << endl;
+
         setOutputs<I + 1, Max>(coll);
     }
     void setOutputsFromAlgorithm() {
@@ -111,10 +110,6 @@ public:
             } catch (EssentiaException e) {
                 std::cout << e.what() << std::endl;
             }
-//        const auto& gateInputs = outValues();
-        
-//        for (int i = 0; i < gateInputs.size(); i++)
-//            gates[i].processSample(gateInputs[i]);
     }
 };
 

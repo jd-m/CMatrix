@@ -107,14 +107,8 @@ void Jd_cmatrixAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     
     using namespace util;
     
-    controlBlockSize = (samplesPerBlock / loopsPerBlock);
-    double controlRate = (sampleRate / samplesPerBlock) * loopsPerBlock;
-    
-    std::cout << "\nsampleRate: " << sampleRate <<
-    "\ncontrolBlockSize: " << controlBlockSize <<
-    "\nloopsPerBlock: " << loopsPerBlock <<
-    "\ncontrolRate: "  << controlRate << std::endl;
-    
+    controlBlockSize = std::min(targetControlBlocksize, samplesPerBlock);
+
     for (auto i : audioRateDetectors) {
         auto& d = detectors[i];
         d.init(sampleRate, sampleRate, samplesPerBlock);
@@ -165,13 +159,14 @@ void Jd_cmatrixAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
         convolvers[i]->prepareToPlay (sampleRate, samplesPerBlock);
     }
     
-    //Testing
-    imp.init(sampleRate);
-    imp.setFrequency(0.5f);
+    wetGainDB.setSampleRate(sampleRate);
+    wetGainDB.setDurationS(0.01, 1.f);
     
-    sin.init(sampleRate);
-    sin.setFrequency(0.125f);
-    sin.setAmplitude(2.f);
+    dryGainDB.setSampleRate(sampleRate);
+    dryGainDB.setDurationS(0.01, 1.f);
+    
+    inputGainDB.setSampleRate(sampleRate);
+    inputGainDB.setDurationS(0.01, 1.f);
     
 }
 
@@ -242,7 +237,7 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
     //Mono Analysis Signal
     for (int i = 0; i < numSamples; i++) {
         float sample = 0.f;
-        float inputGain = jd::dbamp(inputGainDB.nextValue());
+        float inputGain = inputGainDB.nextValue();
         for (int chan = 0; chan < numOutputChannels; chan++) {
             sample += buffer.getSample(shouldUseSidechain ? chan + numOutputChannels : chan, i) * inputGain;
         }
@@ -399,15 +394,14 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
         {
             const int audioSampleIndex = bufOffset + controlBlockIndex;
             
-            const float dryGainAmpSample = jd::dbamp(dryGainDB.nextValue());
-            const float wetGainAmpSample = jd::dbamp(wetGainDB.nextValue());
-    
+            float dryGainAmpSample = dryGainDB.nextValue();
+            const float wetGainAmpSample = wetGainDB.nextValue();
             
             const float wetSampleL = wetBuffer.getSample(0, audioSampleIndex) * wetGainAmpSample;
             const float wetSampleR = wetBuffer.getSample(1, audioSampleIndex) * wetGainAmpSample ;
             
-            const float drySampleL = buffer.getSample(0, audioSampleIndex) * dryGainAmpSample;
-            const float drySampleR = buffer.getSample(1, audioSampleIndex) * dryGainAmpSample;
+            const float drySampleL = inputs[0][audioSampleIndex] * dryGainAmpSample;
+            const float drySampleR = inputs[1][audioSampleIndex] * dryGainAmpSample;
     
             outputs[0][audioSampleIndex] = wetSampleL + drySampleL;
             outputs[1][audioSampleIndex] = wetSampleR + drySampleR;

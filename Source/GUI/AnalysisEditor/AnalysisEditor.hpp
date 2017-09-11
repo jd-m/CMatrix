@@ -37,19 +37,11 @@ public:
     void comboBoxChanged(ComboBox *comboBox) override;
     //=====================================================================
     void buttonClicked(Button* button) override;
-    //=====================================================================
+private:
     void setMeterTriggerMode(int meterIndex);
     //=====================================================================
     void soloDetectorSignal();
     //=====================================================================
-
-    void mouseDown(const MouseEvent& e) override {
-        processor.convolutionEnvelopes[0].trigger();
-    }
-    
-    void mouseUp(const MouseEvent& e) override {
-        processor.convolutionEnvelopes[0].release();
-    }
     template<class Container, class ItemType>
     int getIndexOfItemInArray (Container& container, ItemType& item)
     {

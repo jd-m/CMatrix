@@ -94,13 +94,7 @@ void DetectorMatrix::buttonClicked(Button* changedButton)
         }  else {
             processor.requirementsOfOtherDetectors[detectorIndex][index] = RequiredDetectorState::none;
         }
-        
-        std::stringstream ss;
-//        ss << " detector: " << detectorIndex << " i: " << index << "";
-//        int j = 0;
-//        for (auto r : processor.otherDetectorRequiredRanges[detectorIndex])
-//            ss << " requirement: " << j << " : " << r;
-//        std::cout << ss.str() << std::endl;
+
     }
     
     if (setRequireOutsideRangeButtons.contains(dynamic_cast<ToggleButton*>(changedButton)))

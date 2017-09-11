@@ -86,10 +86,11 @@ public:
     AudioSampleBuffer wetBuffer;
     AudioSampleBuffer multiplicationBuffer;
     
-    bool shouldUseSidechain {true};
+    bool shouldUseSidechain {false};
     AudioSampleBuffer sideChainBuffer;
     
-    int controlBlockSize { 0 };//512
+    int targetControlBlocksize { 128 };
+    int controlBlockSize { 0 };
     int loopsPerBlock { 8 };
 
     RangeDetector gate;

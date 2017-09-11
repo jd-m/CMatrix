@@ -58,7 +58,6 @@ public:
     void addSample (const float sample)
     {
         currentInputLevel += ::fabs(sample);
-//        std::cout << currentInputLevel << std::endl;
         if (++numSamplesIn > samplesToAverage)
         {
             circularBuffer [bufferPos++ % bufferSize] = currentInputLevel / samplesToAverage;
