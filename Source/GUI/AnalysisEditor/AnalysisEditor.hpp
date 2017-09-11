@@ -117,19 +117,20 @@ public:
     OwnedArray<ComboBox> releaseConditionComboBoxes;
     OwnedArray<ComboBox> setEnvelopeModeBoxes;
     OwnedArray<TextButton> loadIRButtons;
+    OwnedArray<Slider> inputGainSliders;
     
     CmatrixLookAndFeel lookAndFeel;
-    
-    ComboBox gainPaddingDBSelection;
-    std::array<float, 3> paddingGains {-18.f, 0.f, 12.f};
     
     //DetectorMatrix
     ComboBox matrixDetectorBox;
     OwnedArray<DetectorMatrix> detectorMatrices;
     
+    //SideChainButton
+    ToggleButton useSideChainButton;
     
     Slider wetGainDBSlider;
     Slider dryGainDBSlider;
+    Slider inputGainDBSlider;
     
     Rectangle<int> detectorDrawingBounds;
     Rectangle<int> analysisSettingBounds;

@@ -164,7 +164,6 @@ processor(p)
         newEnvelopeLevelSlider->addListener(this);
         envelopeLevelKnobs.add(newEnvelopeLevelSlider);
         
-        
         //MATRIX
         auto newDetectorMatrix = new DetectorMatrix(p, i);
         addChildComponent(newDetectorMatrix);
@@ -191,29 +190,29 @@ processor(p)
     setEnvelopeComboBox.addListener(this);
     setEnvelopeComboBox.addItemList(meterNames, 1);
     setEnvelopeComboBox.setSelectedItemIndex(0);
+
     
+    addAndMakeVisible(useSideChainButton);
+    useSideChainButton.setToggleState(false, dontSendNotification);
+    useSideChainButton.setLookAndFeel(&lookAndFeel);
     
     addAndMakeVisible(dryGainDBSlider);
     dryGainDBSlider.addListener(this);
     dryGainDBSlider.setRange(-120., 12.);
-    dryGainDBSlider.setTextBoxStyle(Slider::TextBoxLeft, false, 30, 15);
+    dryGainDBSlider.setTextBoxStyle(Slider::TextBoxBelow, false, 40, 15);
     dryGainDBSlider.setSliderStyle(Slider::SliderStyle::LinearBarVertical);
     
     addAndMakeVisible(wetGainDBSlider);
     wetGainDBSlider.addListener(this);
     wetGainDBSlider.setRange(-120.f, 12.f);
-    wetGainDBSlider.setTextBoxStyle(Slider::TextBoxLeft, false, 30, 15);
+    wetGainDBSlider.setTextBoxStyle(Slider::TextBoxBelow, false, 40, 15);
     wetGainDBSlider.setSliderStyle(Slider::SliderStyle::LinearBarVertical);
     
-    
-    addAndMakeVisible(gainPaddingDBSelection);
-    gainPaddingDBSelection.addListener(this);
-    {int i = 1;
-        for (auto paddingGain : paddingGains) {
-            gainPaddingDBSelection.addItem(String(paddingGain), i++);
-            gainPaddingDBSelection.setSelectedItemIndex(0);
-        }
-    }
+    addAndMakeVisible(inputGainDBSlider);
+    inputGainDBSlider.addListener(this);
+    inputGainDBSlider.setRange(-120.f, 12.f);
+    inputGainDBSlider.setTextBoxStyle(Slider::TextBoxBelow, false, 40, 15);
+    inputGainDBSlider.setSliderStyle(Slider::SliderStyle::LinearBarVertical);
    
 }
 //=====================================================================
@@ -228,7 +227,7 @@ void AnalysisEditor::paint(Graphics& g)
     g.drawRect(top);
 
     g.fillRect(detectorDrawingBounds);
-    
+    g.setFont(Font("arial", 12,0));
     
     g.drawRoundedRectangle(envelopeParameterPanel.toFloat(), 10.f, 2);
     g.setColour(Colours::lightgrey);
@@ -267,10 +266,20 @@ void AnalysisEditor::paint(Graphics& g)
 //    g.drawText("ATK", envelopeSustainTimeBounds.translated(0, 50).withSize(70, 20));
 //    g.drawText("ATK", envelopeReleaseTimeBounds.translated(0, 50).withSize(70, 20));
     
-    g.drawText("WET", wetGainDBSlider.getBounds().withHeight(20).translated(-40,50), Justification::right);
-    g.drawText("DRY", dryGainDBSlider.getBounds().withHeight(20).translated(-40,50), Justification::right);
-    g.setColour(Colours::lightgrey);
-    g.drawRoundedRectangle(masterControlBounds.toFloat(), 5.f, 4);
+    g.drawText("WET", wetGainDBSlider.getBounds().withHeight(20).withWidth(25).translated(0, wetGainDBSlider.getHeight() + 5), Justification::centred);
+    
+    g.drawText("DRY", dryGainDBSlider.getBounds().withHeight(20).withWidth(25).translated(0, dryGainDBSlider.getHeight() + 5), Justification::centred);
+    g.drawText("IN", inputGainDBSlider.getBounds().withHeight(20).withWidth(25).translated(0, inputGainDBSlider.getHeight() + 5), Justification::centred);
+    
+    g.setColour(Colours::black);
+    g.drawRoundedRectangle(masterControlBounds.toFloat(), 5.f, 2);
+    g.setColour(Colours::darkorange);
+    g.drawText("S/C", useSideChainButton.getBounds().translated(0,20), Justification::centred);
+    
+
+    g.fillRect(meterBounds.removeFromLeft(100));
+//    g.drawText("IN RNG", withinName.removeFromLeft(50), Justification::centred);
+//    g.drawText("OUT RNG", withinName.removeFromLeft(50), Justification::centred);
 }
 //=====================================================================
 void AnalysisEditor::resized()
@@ -292,7 +301,7 @@ void AnalysisEditor::resized()
     auto bottom = r.removeFromTop(250);
     positionMeterButtons(bottom.removeFromLeft(600));
     
-    auto masterControlBounds = bottom;
+    masterControlBounds = bottom;
     positionMasterPanel(masterControlBounds);
 }
 //=====================================================================
@@ -334,6 +343,9 @@ void AnalysisEditor::positionDetectorSettings(const Rectangle<int>& sectionBound
         smoothingSpeedKnobs[i]->setBounds(smoothingSpeedKnob);
 
     }
+    
+    useSideChainButton.setBounds(sectionBounds.getX(), sectionBounds.getCentreY(), 30,30);
+    
 }
 //=====================================================================
 void AnalysisEditor::positionMeters(const Rectangle<int>& sectionBounds)
@@ -408,11 +420,11 @@ void AnalysisEditor::positionEditPanel(const Rectangle<int>& sectionBounds)
 void AnalysisEditor::positionMasterPanel(const Rectangle<int>& sectionBounds)
 {
     auto b = sectionBounds;
-    
-    auto left = b.removeFromLeft(100);
-    wetGainDBSlider.setBounds(left.reduced(32, 20).translated(15, 0));
-    auto right = b;
-    dryGainDBSlider.setBounds(right.reduced(32, 20));
+    auto columnWidth = sectionBounds.getWidth() / 3;
+
+    wetGainDBSlider.setBounds(b.removeFromLeft(columnWidth).reduced(columnWidth * 0.35f, 30));
+    dryGainDBSlider.setBounds(b.removeFromLeft(columnWidth).reduced(columnWidth * 0.35f, 30));
+    inputGainDBSlider.setBounds(b.removeFromLeft(columnWidth).reduced(columnWidth * 0.35f, 30));
 }
 //=====================================================================
 void AnalysisEditor::sliderValueChanged(juce::Slider *slider)
@@ -482,6 +494,9 @@ void AnalysisEditor::sliderValueChanged(juce::Slider *slider)
     if (slider == &dryGainDBSlider) {
         processor.dryGainDB.setTarget(jd::dbamp(slider->getValue()));
     }
+    if (slider == &inputGainDBSlider) {
+        processor.inputGainDB.setTarget(jd::dbamp(slider->getValue()));
+    }
     
 }
 //=====================================================================
@@ -521,6 +536,8 @@ void AnalysisEditor::buttonClicked(Button* changedButton)
         index++;
     }}
 
+    if (changedButton == &useSideChainButton)
+        processor.shouldUseSidechain = changedButton->getToggleState();
 }
 //=====================================================================
 void AnalysisEditor::comboBoxChanged(juce::ComboBox *comboBox)

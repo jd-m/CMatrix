@@ -86,6 +86,9 @@ public:
     AudioSampleBuffer wetBuffer;
     AudioSampleBuffer multiplicationBuffer;
     
+    bool shouldUseSidechain {true};
+    AudioSampleBuffer sideChainBuffer;
+    
     int controlBlockSize { 0 };//512
     int loopsPerBlock { 8 };
 
@@ -120,7 +123,7 @@ public:
     //levels
     jd::AtomicSmoothedValue<float> dryGainDB {-6.f};
     jd::AtomicSmoothedValue<float> wetGainDB {-6.f};
-    jd::AtomicSmoothedValue<float> padGainDB { 0.f };
+    jd::AtomicSmoothedValue<float> inputGainDB { -6.f};
     
     std::array<jd::OneZero<float>, 5> envSmoother;
     

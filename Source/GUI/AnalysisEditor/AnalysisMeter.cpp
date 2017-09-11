@@ -86,7 +86,8 @@ detector(sourceDetector)
 void AnalysisMeter::paint(juce::Graphics &g)
 {
     g.drawRoundedRectangle(getLocalBounds().toFloat(), 5.f, 1.f);
-    
+    g.fillAll(Colours::darkgrey);
+    g.setColour(Colours::darkorange);
     g.drawText("on",
                enableButton.getBounds().getX(),
                enableButton.getBounds().getBottom(),
@@ -101,7 +102,7 @@ void AnalysisMeter::paint(juce::Graphics &g)
                20,
                Justification::centred);
     
-    g.fillAll(Colours::darkgrey);
+
 
     g.setColour(Colours::black);
     g.drawRect(getLocalBounds());

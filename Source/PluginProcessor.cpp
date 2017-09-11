@@ -8,6 +8,7 @@ Jd_cmatrixAudioProcessor::Jd_cmatrixAudioProcessor()
                      #if ! JucePlugin_IsMidiEffect
                       #if ! JucePlugin_IsSynth
                        .withInput  ("Input",  AudioChannelSet::stereo(), true)
+                       .withInput("Sidechain", AudioChannelSet::stereo(), true)
                       #endif
                        .withOutput ("Output", AudioChannelSet::stereo(), true)
                      #endif
@@ -36,6 +37,8 @@ Jd_cmatrixAudioProcessor::Jd_cmatrixAudioProcessor()
     
     triggerCooldowns.fill(0);
     triggerCooldownTimes.fill(4800);
+    
+    
     
 }
 
@@ -143,20 +146,12 @@ void Jd_cmatrixAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
     detectors[LEVEL].shouldConvertInput = true;
     
     
-
     //Analysis
     analysisChain.init(sampleRate, sampleRate, controlBlockSize);
 
     mixedBuf.resize(samplesPerBlock);
     wetBuffer.setSize(2, samplesPerBlock);
     multiplicationBuffer.setSize(2, samplesPerBlock);
-    
-//    //Triggering
-//    detectorIsEnabled.fill(false);
-//    convolutionEnabled.fill(false);
-//    entryToRangeTriggered.fill(false);
-//    shouldReverseEnabledRange.fill(false);
-//    envelopeModes.fill(oneShot);
     
     //CONVOLUTION
     for (auto& convEnvBuf : convolutionEnvelopeBuffers)
@@ -237,19 +232,23 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
     for (int i = numInputChannels; i < numOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
+    
+    //SideChain
+    getBusBuffer(buffer, true, 1);
     //Input Scale
+
     
-    
+    inputGainDB.updateTarget();
     //Mono Analysis Signal
-    mixedBuf.clear();
     for (int i = 0; i < numSamples; i++) {
         float sample = 0.f;
-        for (int chan = 0; chan < numInputChannels; chan++)
-            sample += inputs[chan][i];
+        float inputGain = jd::dbamp(inputGainDB.nextValue());
+        for (int chan = 0; chan < numOutputChannels; chan++) {
+            sample += buffer.getSample(shouldUseSidechain ? chan + numOutputChannels : chan, i) * inputGain;
+        }
     
         mixedBuf[i] = sample / (float)numInputChannels;
     }
-//    sin.processBlock(&mixedBuf[0], numSamples);
     
     int remaining = numSamples;
     //Analysis
@@ -260,6 +259,7 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
         memcpy(&analysisChain.inputSignal[0],
                &mixedBuf[bufOffset],
                controlBlockSize * sizeof(float));
+        
         //ControlLoop
         analysisChain.computeBlock();
         
@@ -310,7 +310,7 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
                     }
                 }
                 
-                
+                //cool down
                 if (triggerCooldowns[detectorIndex] > 0)
                     triggerCooldowns[detectorIndex]--;
                 
@@ -349,7 +349,7 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
     
     
     // Convolution
-    for (int convolverIndex = 0; convolverIndex < NUM_DETECTORS; convolverIndex++)
+        for (int convolverIndex = 0; convolverIndex < NUM_DETECTORS; convolverIndex++)
     {
         if (convolutionEnabled[convolverIndex])
         {
@@ -374,15 +374,11 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
         FloatVectorOperations::add(wetBuffer.getWritePointer(1),
                                    multiplicationBuffer.getReadPointer(1),
                                    numSamples);
-
-    
         }
-    
         
     }
     
-//
-//    //SCALE BUFFER
+    //SCALE WET BUFFER
     FloatVectorOperations::multiply(wetBuffer.getWritePointer(0),
                                     0.5f,
                                     numSamples);
@@ -398,7 +394,6 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
         
         dryGainDB.updateTarget();
         wetGainDB.updateTarget();
-        padGainDB.updateTarget();
         
         for (int controlBlockIndex = 0; controlBlockIndex < controlBlockSize; ++controlBlockIndex)
         {
@@ -406,16 +401,16 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
             
             const float dryGainAmpSample = jd::dbamp(dryGainDB.nextValue());
             const float wetGainAmpSample = jd::dbamp(wetGainDB.nextValue());
-            const float padGainAmpSample = jd::dbamp(padGainDB.nextValue());
-            
-            const float wetSampleL = wetBuffer.getSample(0, audioSampleIndex) * wetGainAmpSample * padGainAmpSample;
-            const float wetSampleR = wetBuffer.getSample(1, audioSampleIndex) * wetGainAmpSample * padGainAmpSample;
-            
-//            const float drySampleL = buffer.getSample(0, audioSampleIndex) * dryGainAmpSample;
-//            const float drySampleR = buffer.getSample(1, audioSampleIndex) * dryGainAmpSample;
     
-            outputs[0][audioSampleIndex] = wetBuffer.getSample(0, audioSampleIndex);
-            outputs[1][audioSampleIndex] = wetBuffer.getSample(1, audioSampleIndex);
+            
+            const float wetSampleL = wetBuffer.getSample(0, audioSampleIndex) * wetGainAmpSample;
+            const float wetSampleR = wetBuffer.getSample(1, audioSampleIndex) * wetGainAmpSample ;
+            
+            const float drySampleL = buffer.getSample(0, audioSampleIndex) * dryGainAmpSample;
+            const float drySampleR = buffer.getSample(1, audioSampleIndex) * dryGainAmpSample;
+    
+            outputs[0][audioSampleIndex] = wetSampleL + drySampleL;
+            outputs[1][audioSampleIndex] = wetSampleR + drySampleR;
             
         }
         remaining -= numToCopy;

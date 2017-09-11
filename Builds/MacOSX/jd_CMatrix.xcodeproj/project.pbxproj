@@ -34,7 +34,7 @@
 		4815D0F69E5E72B385EFF4B6 /* juce_core.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2D27495B32E59D7C4AA290B8 /* juce_core.mm */; };
 		49D705600A65DCFDCBFE889F /* juce_data_structures.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0F0211C8F9DFBC0BDD52A3CE /* juce_data_structures.mm */; };
 		51E8C67022D706090E21D696 /* PluginEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B0738F9931D1B26631058C10 /* PluginEditor.cpp */; };
-		59799B191F65E3FF0028E9F6 /* DetectorMatrix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 59799B171F65E3FF0028E9F6 /* DetectorMatrix.cpp */; };
+		59799B1A1F664A8B0028E9F6 /* DetectorMatrix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 59799B171F65E3FF0028E9F6 /* DetectorMatrix.cpp */; };
 		59F2D08B1F617794003F8347 /* RecentFilesMenuTemplate.nib in Resources */ = {isa = PBXBuildFile; fileRef = AA72A8F3EBA3DF2FAC662D47 /* RecentFilesMenuTemplate.nib */; };
 		59F2D08C1F617794003F8347 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56FCA5715366D4DCFB7DF598 /* Accelerate.framework */; };
 		59F2D08D1F617794003F8347 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F958F053FF9AF5245622EFB2 /* AudioToolbox.framework */; };
@@ -4230,6 +4230,7 @@
 				59F2D0DC1F617BDD003F8347 /* Convolver.cpp in Sources */,
 				59F2D0DE1F617BF2003F8347 /* AnalysisEditor.cpp in Sources */,
 				59F2D0DF1F617BF4003F8347 /* AnalysisMeter.cpp in Sources */,
+				59799B1A1F664A8B0028E9F6 /* DetectorMatrix.cpp in Sources */,
 				59F2D0E21F617BFC003F8347 /* LookAndFeel.cpp in Sources */,
 				59F2D0E31F617BFF003F8347 /* SignalDisplayUI.cpp in Sources */,
 				CA852FC2FB9113D0D90B6BE5 /* juce_audio_basics.mm in Sources */,
@@ -4255,7 +4256,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				59799B191F65E3FF0028E9F6 /* DetectorMatrix.cpp in Sources */,
 				DF04215014A07614E8DFB75F /* juce_audio_plugin_client_VST2.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
