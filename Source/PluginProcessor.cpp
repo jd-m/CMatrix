@@ -172,21 +172,8 @@ void Jd_cmatrixAudioProcessor::prepareToPlay (double sampleRate, int samplesPerB
 
 void Jd_cmatrixAudioProcessor::releaseResources()
 {
-//    
-//    for (auto convolver : convolvers) {
-//        convolver->leftChannel.processingBuffer.clear();
-//        convolver->rightChannel.processingBuffer.clear();
-//    }
-//    
-//    for (auto& convEnvBuf : convolutionEnvelopeBuffers)
-//        convEnvBuf.clear();
-//    
-//    mixedBuf.clear();
     wetBuffer.clear();
-//    multiplicationBuffer.clear();
-//    
-//    for (auto w :waveformViewers)
-//        w->clear();
+
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -229,7 +216,7 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
 
     
     //SideChain
-    getBusBuffer(buffer, true, 1);
+//    getBusBuffer(buffer, true, 1);
     //Input Scale
 
     
@@ -237,9 +224,9 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
     //Mono Analysis Signal
     for (int i = 0; i < numSamples; i++) {
         float sample = 0.f;
-        float inputGain = inputGainDB.nextValue();
+//        float inputGain = inputGainDB.nextValue();
         for (int chan = 0; chan < numOutputChannels; chan++) {
-            sample += buffer.getSample(shouldUseSidechain ? chan + numOutputChannels : chan, i) * inputGain;
+            sample += buffer.getSample(chan, i);
         }
     
         mixedBuf[i] = sample / (float)numInputChannels;
@@ -276,12 +263,10 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
             
             detectors[LEVEL].setInput(mixedBuf[bufOffset + i]);
         
-            
             for (int detectorIndex = 0; detectorIndex < NUM_DETECTORS; detectorIndex++) {
                 //Waveforms
                 detectors[detectorIndex].applySmoothing();
-                waveformViewers[detectorIndex]->addSample(
-                                                                   detectors[detectorIndex].normalisedScaledOutput());
+                waveformViewers[detectorIndex]->addSample(detectors[detectorIndex].normalisedScaledOutput());
               
                 //CheckOtherDetector in/out of range
                 bool allDetectorsMeetRequirements = true;

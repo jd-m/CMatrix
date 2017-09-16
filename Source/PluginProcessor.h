@@ -89,7 +89,7 @@ public:
     bool shouldUseSidechain {false};
     AudioSampleBuffer sideChainBuffer;
     
-    int targetControlBlocksize { 128 };
+    int targetControlBlocksize { 512 };
     int controlBlockSize { 0 };
     int loopsPerBlock { 8 };
 

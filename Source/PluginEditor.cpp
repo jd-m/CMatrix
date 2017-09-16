@@ -53,5 +53,6 @@ void Jd_cmatrixAudioProcessorEditor::sliderValueChanged(juce::Slider *slider)
 }
 void Jd_cmatrixAudioProcessorEditor::timerCallback()
 {
-//    repaint();
+    std::cout << processor.analysisChain.pitchYinFFT.output<0>() << std::endl;
+    repaint();
 }
