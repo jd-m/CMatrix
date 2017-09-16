@@ -1,16 +1,5 @@
-/*
-  ==============================================================================
-
-    This file was auto-generated!
-
-    It contains the basic framework code for a JUCE plugin processor.
-
-  ==============================================================================
-*/
-
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-
 
 //==============================================================================
 Jd_cmatrixAudioProcessor::Jd_cmatrixAudioProcessor()
@@ -19,12 +8,38 @@ Jd_cmatrixAudioProcessor::Jd_cmatrixAudioProcessor()
                      #if ! JucePlugin_IsMidiEffect
                       #if ! JucePlugin_IsSynth
                        .withInput  ("Input",  AudioChannelSet::stereo(), true)
+                       .withInput("Sidechain", AudioChannelSet::stereo(), true)
                       #endif
                        .withOutput ("Output", AudioChannelSet::stereo(), true)
                      #endif
                        )
 #endif
 {
+    for (int i = 0; i < NUM_DETECTORS; i++) {
+        auto w = new SignalDrawer();
+        waveformViewers.add(w);
+        w->setSamplesToAverage(128);
+        
+        auto newStereoConvolver = new StereoConvolver();
+        convolvers.add (newStereoConvolver);
+    }
+    
+    for (auto& env : convolutionEnvelopes) {
+        env.adsr(0.1f,0.1f, jd::dbamp(-6.f), 2.f);
+    }
+    
+    //Triggering
+    detectorIsEnabled.fill(false);
+    convolutionEnabled.fill(false);
+    entryToRangeTriggered.fill(false);
+    shouldReverseEnabledRange.fill(false);
+    envelopeModes.fill(oneShot);
+    
+    triggerCooldowns.fill(0);
+    triggerCooldownTimes.fill(4800);
+    
+    
+    
 }
 
 Jd_cmatrixAudioProcessor::~Jd_cmatrixAudioProcessor()
@@ -87,14 +102,78 @@ void Jd_cmatrixAudioProcessor::changeProgramName (int index, const String& newNa
 //==============================================================================
 void Jd_cmatrixAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    
+    releaseResources();
+    
+    using namespace util;
+    
+    controlBlockSize = std::min(targetControlBlocksize, samplesPerBlock);
+
+    for (auto i : audioRateDetectors) {
+        auto& d = detectors[i];
+        d.init(sampleRate, sampleRate, samplesPerBlock);
+        d.setRange(0.f, 0.f);
+        d.setRMSWindowSize(5);
+    }
+    
+    for (auto i : controlRateDetectors) {
+        auto& d = detectors[i];
+        d.init(sampleRate, sampleRate, controlBlockSize);
+        d.setRange(0.f,0.f);
+        d.setRMSWindowSize(10);
+    }
+    
+    detectors[PITCH].setInputScalingFunc(jd::midihz<float>);
+    detectors[PITCH].setOutputScalingFunc(jd::hzmidi<float>);
+    detectors[PITCH].setLimits(freqScale.front(), freqScale.back());
+    detectors[PITCH].shouldConvertOutput = true;
+    detectors[PITCH].shouldConvertInput = false;
+    
+    
+    detectors[LEVEL].setOutputScalingFunc(jd::dbamp<float>);
+    detectors[LEVEL].setLimits(logAmpScale.front(), logAmpScale.back());
+    detectors[LEVEL].setInputScalingFunc([] (float x){
+        return jd::ampdb(jd::clip(x,
+                                  jd::dbamp(-60.f),
+                                  jd::dbamp(6.f)));
+    });
+    detectors[LEVEL].shouldConvertInput = true;
+    
+    
+    //Analysis
+    analysisChain.init(sampleRate, sampleRate, controlBlockSize);
+
+    mixedBuf.resize(samplesPerBlock);
+    wetBuffer.setSize(2, samplesPerBlock);
+    multiplicationBuffer.setSize(2, samplesPerBlock);
+    
+    //CONVOLUTION
+    for (auto& convEnvBuf : convolutionEnvelopeBuffers)
+        convEnvBuf.setSize(1, samplesPerBlock);
+
+    for (auto& env : convolutionEnvelopes) {
+        env.init(sampleRate, samplesPerBlock);
+    }
+
+    for (int i = 0; i < NUM_DETECTORS; i++) {
+        convolvers[i]->prepareToPlay (sampleRate, samplesPerBlock);
+    }
+    
+    wetGainDB.setSampleRate(sampleRate);
+    wetGainDB.setDurationS(0.01, 1.f);
+    
+    dryGainDB.setSampleRate(sampleRate);
+    dryGainDB.setDurationS(0.01, 1.f);
+    
+    inputGainDB.setSampleRate(sampleRate);
+    inputGainDB.setDurationS(0.01, 1.f);
+    
 }
 
 void Jd_cmatrixAudioProcessor::releaseResources()
 {
-    // When playback stops, you can use this as an opportunity to free up any
-    // spare memory, etc.
+    wetBuffer.clear();
+
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -123,26 +202,199 @@ bool Jd_cmatrixAudioProcessor::isBusesLayoutSupported (const BusesLayout& layout
 
 void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
-    const int totalNumInputChannels  = getTotalNumInputChannels();
-    const int totalNumOutputChannels = getTotalNumOutputChannels();
+    using namespace util;
+    
+    const int numInputChannels  = getTotalNumInputChannels();
+    const int numOutputChannels = getTotalNumOutputChannels();
+    const int numSamples = buffer.getNumSamples();
+    
+    const float ** inputs = buffer.getArrayOfReadPointers();
+    float** outputs = buffer.getArrayOfWritePointers();
 
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
-    for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
+    for (int i = numInputChannels; i < numOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        float* channelData = buffer.getWritePointer (channel);
+    
+    //SideChain
+//    getBusBuffer(buffer, true, 1);
+    //Input Scale
 
-        // ..do something to the data...
+    
+    inputGainDB.updateTarget();
+    //Mono Analysis Signal
+    for (int i = 0; i < numSamples; i++) {
+        float sample = 0.f;
+//        float inputGain = inputGainDB.nextValue();
+        for (int chan = 0; chan < numOutputChannels; chan++) {
+            sample += buffer.getSample(chan, i);
+        }
+    
+        mixedBuf[i] = sample / (float)numInputChannels;
     }
+    
+    int remaining = numSamples;
+    //Analysis
+    while (remaining > 0) {
+        const int numToCopy = std::min(remaining, (int)controlBlockSize);
+        const int bufOffset = numSamples - remaining;
+
+        memcpy(&analysisChain.inputSignal[0],
+               &mixedBuf[bufOffset],
+               controlBlockSize * sizeof(float));
+        
+        //ControlLoop
+        analysisChain.computeBlock();
+        
+        //AudioLoop
+        for (int i = 0; i < controlBlockSize; i++)
+        {
+            //ThresholdChecking
+            detectors[PITCH].setInput
+            (analysisChain.pitchYinFFT.output<0>());
+            
+            detectors[PITCH_CONFIDENCE].setInput
+            (analysisChain.pitchYinFFT.output<1>());
+            
+            detectors[PITCH_SALIENCE].setInput
+            (analysisChain.pitchSalience.output<0>());
+            
+            detectors[INHARMONICITY].setInput
+            (analysisChain.inharmonicity.output<0>());
+            
+            detectors[LEVEL].setInput(mixedBuf[bufOffset + i]);
+        
+            for (int detectorIndex = 0; detectorIndex < NUM_DETECTORS; detectorIndex++) {
+                //Waveforms
+                detectors[detectorIndex].applySmoothing();
+                waveformViewers[detectorIndex]->addSample(detectors[detectorIndex].normalisedScaledOutput());
+              
+                //CheckOtherDetector in/out of range
+                bool allDetectorsMeetRequirements = true;
+                
+                for (int requiredStateIndex = 0; requiredStateIndex < NUM_DETECTORS; requiredStateIndex++)
+                {
+                    if (!(requirementsOfOtherDetectors[detectorIndex][requiredStateIndex] == RequiredDetectorState::none) &&
+                        convolutionEnabled[requiredStateIndex]
+                        )
+                    {
+                        RequiredDetectorState detectorRangeState;
+                        if (detectors[requiredStateIndex].isWithinRange())
+                            detectorRangeState = withinRange;
+                        else
+                            detectorRangeState = outsideRange;
+                        
+                        bool requirementMetForDetector =
+                        requirementsOfOtherDetectors[detectorIndex][requiredStateIndex] == detectorRangeState;
+                        
+                        allDetectorsMeetRequirements = requirementMetForDetector && allDetectorsMeetRequirements;
+                    }
+                }
+                
+                //cool down
+                if (triggerCooldowns[detectorIndex] > 0)
+                    triggerCooldowns[detectorIndex]--;
+                
+                //Convolution Envelope
+                if (convolutionEnabled[detectorIndex] &&
+                    allDetectorsMeetRequirements) {
+                    
+                    //IF CROSSED A THRESHOLD
+                    if (detectors[detectorIndex].crossedThresholdOnLastCheck())
+                    {
+                        //CHECK TRIGGER CONDITION
+                        if (triggerConditions[detectorIndex].at(detectors[detectorIndex].getGateCode())) {
+                            
+                            if (triggerCooldowns[detectorIndex] == 0) {
+                                convolutionEnvelopes[detectorIndex].trigger();
+                                triggerCooldowns[detectorIndex] = triggerCooldownTimes[detectorIndex];
+                            }
+                        }
+                        
+                        if (releaseConditions[detectorIndex].at(detectors[detectorIndex].getGateCode()))
+                            convolutionEnvelopes[detectorIndex].release();
+                    }
+                    
+                    //WRITE GATE VALUES TO BLOCK
+                    convolutionEnvelopes[detectorIndex].updateAction();
+                    float envSample =  envSmoother[detectorIndex](convolutionEnvelopes[detectorIndex].value());
+                    
+                    convolutionEnvelopeBuffers[detectorIndex].setSample(0, bufOffset + i, envSample);
+                }
+                
+            }
+        }
+
+        remaining -= numToCopy;
+    } //END LOOP
+    
+    
+    // Convolution
+        for (int convolverIndex = 0; convolverIndex < NUM_DETECTORS; convolverIndex++)
+    {
+        if (convolutionEnabled[convolverIndex])
+        {
+            //Convolve
+            convolvers[convolverIndex]->processBlock(inputs, numSamples);
+            
+            FloatVectorOperations::multiply(multiplicationBuffer.getWritePointer(0),
+                                            convolutionEnvelopeBuffers[convolverIndex].getReadPointer(0),
+                                            convolvers[convolverIndex]->leftChannel.getBufferData(),
+                                            numSamples);
+        
+            FloatVectorOperations::multiply(multiplicationBuffer.getWritePointer(1),
+                                            convolutionEnvelopeBuffers[convolverIndex].getReadPointer(0),
+                                            convolvers[convolverIndex]->rightChannel.getBufferData(),
+                                            numSamples);
+        
+        //SUM INTO WET BUFFER
+        FloatVectorOperations::add(wetBuffer.getWritePointer(0),
+                                   multiplicationBuffer.getReadPointer(0),
+                                   numSamples);
+        
+        FloatVectorOperations::add(wetBuffer.getWritePointer(1),
+                                   multiplicationBuffer.getReadPointer(1),
+                                   numSamples);
+        }
+        
+    }
+    
+    //SCALE WET BUFFER
+    FloatVectorOperations::multiply(wetBuffer.getWritePointer(0),
+                                    0.5f,
+                                    numSamples);
+    FloatVectorOperations::multiply(wetBuffer.getWritePointer(1),
+                                    0.5f,
+                                    numSamples);
+
+    
+    remaining = numSamples;
+    while (remaining > 0) {
+        const int numToCopy = std::min(remaining, (int)controlBlockSize);
+        const int bufOffset = numSamples - remaining;
+        
+        dryGainDB.updateTarget();
+        wetGainDB.updateTarget();
+        
+        for (int controlBlockIndex = 0; controlBlockIndex < controlBlockSize; ++controlBlockIndex)
+        {
+            const int audioSampleIndex = bufOffset + controlBlockIndex;
+            
+            float dryGainAmpSample = dryGainDB.nextValue();
+            const float wetGainAmpSample = wetGainDB.nextValue();
+            
+            const float wetSampleL = wetBuffer.getSample(0, audioSampleIndex) * wetGainAmpSample;
+            const float wetSampleR = wetBuffer.getSample(1, audioSampleIndex) * wetGainAmpSample ;
+            
+            const float drySampleL = inputs[0][audioSampleIndex] * dryGainAmpSample;
+            const float drySampleR = inputs[1][audioSampleIndex] * dryGainAmpSample;
+    
+            outputs[0][audioSampleIndex] = wetSampleL + drySampleL;
+            outputs[1][audioSampleIndex] = wetSampleR + drySampleR;
+            
+        }
+        remaining -= numToCopy;
+    }
+    
 }
 
 //==============================================================================
@@ -159,9 +411,7 @@ AudioProcessorEditor* Jd_cmatrixAudioProcessor::createEditor()
 //==============================================================================
 void Jd_cmatrixAudioProcessor::getStateInformation (MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
+
 }
 
 void Jd_cmatrixAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
