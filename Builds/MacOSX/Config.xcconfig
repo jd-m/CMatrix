@@ -1,5 +1,5 @@
 
-HEADER_SEARCH_PATHS = ($inherited) "$(HOME)/libs/fftw3f/include" "$(HOME)/libs/essentia_/include"
+HEADER_SEARCH_PATHS = ($inherited) "$(HOME)/libs/fftw3f/include" "$(HOME)/libs/essentia_/include" "../jdlib" "../"
 
 LIBRARY_SEARCH_PATHS = ($inherited) "$(HOME)/libs/essentia_/lib" "$(HOME)/libs/fftw3f/lib"
 

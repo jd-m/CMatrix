@@ -216,7 +216,7 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
 
     
     //SideChain
-//    getBusBuffer(buffer, true, 1);
+    getBusBuffer(buffer, true, 1);
     //Input Scale
 
     
@@ -224,9 +224,9 @@ void Jd_cmatrixAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuff
     //Mono Analysis Signal
     for (int i = 0; i < numSamples; i++) {
         float sample = 0.f;
-//        float inputGain = inputGainDB.nextValue();
+        float inputGain = inputGainDB.nextValue();
         for (int chan = 0; chan < numOutputChannels; chan++) {
-            sample += buffer.getSample(chan, i);
+            sample += buffer.getSample(chan, i) * inputGain;
         }
     
         mixedBuf[i] = sample / (float)numInputChannels;

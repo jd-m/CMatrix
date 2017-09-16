@@ -8,7 +8,9 @@
               pluginCode="Dhg4" pluginChannelConfigs="" pluginIsSynth="0" pluginWantsMidiIn="0"
               pluginProducesMidiOut="0" pluginIsMidiEffectPlugin="0" pluginEditorRequiresKeys="0"
               pluginAUExportPrefix="jd_CMatrixAU" pluginRTASCategory="" aaxIdentifier="com.yourcompany.jd_CMatrix"
-              pluginAAXCategory="AAX_ePlugInCategory_Dynamics" jucerVersion="4.3.1">
+              pluginAAXCategory="AAX_ePlugInCategory_Dynamics" jucerVersion="4.3.1"
+              displaySplashScreen="0" reportAppUsage="0" splashScreenColour="Dark"
+              buildStandalone="0" enableIAA="0" cppLanguageStandard="11">
   <MAINGROUP id="m4t9Ax" name="jd_CMatrix">
     <GROUP id="{717005B4-D086-3E84-4A45-F8CE6A4A6002}" name="Source">
       <FILE id="XH6ZNE" name="PluginProcessor.cpp" compile="1" resource="0"

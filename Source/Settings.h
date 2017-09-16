@@ -1,6 +1,6 @@
 #ifndef Settings_h
 #define Settings_h
-#include "jdHeader.h"
+#include "jd-lib/jdHeader.h"
 
 enum ARDetectors {
     LEVEL,

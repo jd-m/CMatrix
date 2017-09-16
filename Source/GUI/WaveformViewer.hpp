@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "essentia_analyser_chain.h"
+#include "../essentia_analysis/essentia_analysis_gates.h"
 #include "Settings.h"
 
 class SignalDrawer  : public Component,

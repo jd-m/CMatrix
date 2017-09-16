@@ -8,8 +8,8 @@
 
 #ifndef essentia_analysis_gates_h
 #define essentia_analysis_gates_h
-#include "jdHeader.h"
-#include "Settings.h"
+#include "../jd-lib/jdHeader.h"
+#include "../Settings.h"
 
 using RangeDetector = jd::GateDouble<float>;
 

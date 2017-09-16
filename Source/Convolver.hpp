@@ -11,8 +11,8 @@
 
 
 #include <stdio.h>
-#include "TwoStageFFTConvolver.h"
-#include "jdHeader.h"
+#include "FFTConvolver/TwoStageFFTConvolver.h"
+#include "jd-lib/jdHeader.h"
 #include "../JuceLibraryCode/JuceHeader.h"
 
 
