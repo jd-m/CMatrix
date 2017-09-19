@@ -6,88 +6,29 @@
 #include "../essentia_analysis/essentia_analysis_gates.h"
 #include "Settings.h"
 
-class SignalDrawer  : public Component,
-public Timer
+class SignalDrawer  :   public Component,
+                        public Timer
 {
 public:
-    SignalDrawer()
-    {
-        bufferPos = 0;
-        bufferSize = 2048;
-        circularBuffer.resize(bufferSize);
-//        memset(circularBuffer, 0.f, sizeof(float) * bufferSize);
-        clear();
-        currentInputLevel = 0.0f;
-        numSamplesIn = 0;
-//        setOpaque (true);
-        startTimerHz(30); 
-    }
-    ~SignalDrawer()
-    {
-    }
-    void paint (Graphics& g)
-    {
-        g.fillAll (Colours::transparentBlack);
-        if (isActive)
-            g.setColour (lineColour);
-        else
-            g.setColour(lineColour.withAlpha((float)0.1));
-        const float heightf = static_cast<float>(getHeight());
-        int bp = bufferPos;
-        
-        Path p;
+    SignalDrawer();
+
+    void paint (Graphics& g);
     
-        p.startNewSubPath(getWidth(), 0);
-        
-        for (int x = getWidth() - 1; x > 0; x--) {
-            const int samplesAgo = getWidth() - x;
-            
-            const float level = circularBuffer [(bp + bufferSize - samplesAgo) % bufferSize];
-            float xf = static_cast<float>(x);
-            
-            p.lineTo(xf, heightf - heightf * level);
-        }
+    void addSample (const float sample);
     
-        g.strokePath(p, PathStrokeType(1));
-            
-    }
-    void timerCallback()
-    {
-        repaint();
-    }
-    void addSample (const float sample)
-    {
-        currentInputLevel += ::fabs(sample);
-        if (++numSamplesIn > samplesToAverage)
-        {
-            circularBuffer [bufferPos++ % bufferSize] = currentInputLevel / samplesToAverage;
-            numSamplesIn = 0;
-            currentInputLevel = 0.0f;
-        }
-    }
-    void clear ()
-    {
-        circularBuffer.clear();
-    }
-    void setSamplesToAverage (size_t newSamplesToAverage)
-    {
-        samplesToAverage = newSamplesToAverage;
-    }
-    void setLineColour (Colour newLineColour)
-    {
-        lineColour = newLineColour;
-    }
-    void setIsActive(bool newIsActive)
-    {
-        isActive = newIsActive;
-        repaint();
-    }
+    void setSamplesToAverage (size_t newSamplesToAverage);
+    void setLineColour (Colour newLineColour);
+    void setIsActive(bool newIsActive);
+    
+    void clear ();
+    
+    void timerCallback();
 
 private:
     bool isActive {true};
     std::vector<float> circularBuffer;
     float currentInputLevel;
     Colour lineColour;
-    int volatile bufferPos, bufferSize, numSamplesIn, samplesToAverage = 128;
+    int volatile bufferPos { 0}, bufferSize { 2048 }, numSamplesIn { 0 }, samplesToAverage { 128 };
 };
 #endif /* WaveformViewer_hpp */

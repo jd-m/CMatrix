@@ -1,35 +1,31 @@
 #include "SignalDisplayUI.hpp"
 
-
-
 //================================================================
 void WaveformDisplay::paint(juce::Graphics &g)
 {
  
     g.fillAll(Colours::transparentBlack);
-    auto r = getLocalBounds().toFloat();
     
+    auto r = getLocalBounds().toFloat();
     auto unit = [](float val) { return val; };
+    
     switch (scalingMode) {
         case LOG_AMP:
-            drawScaledRange(g,
+            drawScaledRangeMarkers(g,
                             " dB",
                             util::logAmpScale,
-                            unit,
                             unit);
             break;
         case LIN:
-            drawScaledRange(g,
+            drawScaledRangeMarkers(g,
                             "",
                             util::linAmpScale,
-                            unit,
                             unit);
             break;
         case LOG_FREQ:
-            drawScaledRange(g,
+            drawScaledRangeMarkers(g,
                             " Hz",
                             util::freqScale,
-                            jd::hzmidi<float>,
                             jd::hzmidi<float>);
             break;
             
@@ -42,16 +38,16 @@ void WaveformDisplay::resized()
 {
 }
 //================================================================
-template<class C, class InputScalingFunc, class OutputScalingFunc>
-void WaveformDisplay::drawScaledRange(Graphics &g,
+template<class CollectionType, class ScalingFunc>
+void WaveformDisplay::drawScaledRangeMarkers(Graphics &g,
                                       String unit,
-                                      C unscaledMarkers,
-                                      InputScalingFunc scaleInput,
-                                      OutputScalingFunc scaleOutput)
+                                      CollectionType unscaledMarkers,
+                                      ScalingFunc scaleFunc)
 {
     g.setColour(Colours::grey.withAlpha((float)0.1f));
     
-    auto drawTextBox = [&](String text, int y) {
+    auto drawTextBox = [&](String text, int y)
+    {
         
         auto textBox = Rectangle<int> { 3, y - 5, 50, 10 };
         g.setColour(Colours::grey.withAlpha((float)0.7f));
@@ -69,15 +65,16 @@ void WaveformDisplay::drawScaledRange(Graphics &g,
     
     for (int i = unscaledMarkers.size()-2; i > 0; --i)
     {
-        auto normalisedMarker = jd::linlin(scaleInput(unscaledMarkers[i]),
-                                           scaleOutput(unscaledMarkers.front()),
-                                           scaleOutput(unscaledMarkers.back()),
+        auto normalisedMarker = jd::linlin(scaleFunc(unscaledMarkers[i]),
+                                           scaleFunc(unscaledMarkers.front()),
+                                           scaleFunc(unscaledMarkers.back()),
                                            0.f,
                                            1.f );
         int y = getHeight() * (1.f - normalisedMarker);
         g.drawLine ( 0, y, getWidth(), y, 1);
         drawTextBox(String(unscaledMarkers[i]) + unit, y);
     }
+    
     drawTextBox (String(unscaledMarkers.front()) + unit, getHeight() - 5);
 }
 //================================================================

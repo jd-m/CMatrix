@@ -19,14 +19,16 @@
 #include "jdHeader.h"
 #include "essentia_analysis_gates.h"
 /*
- Using Compile-Time PolyMorphism to avoid virtual calls in audio loop
+ Using Compile-Time PolyMorphism: less readable implementation but avoids virtual calls in audio loop
 */
 //===================================================================
 template<class Derived, class ... Args >
 class Analyser {
+    
     using Algorithm = essentia::standard::Algorithm;
-public:
+    
     bool m_isEnabled { true };
+    
     std::tuple<Args...> outputs;
     
     std::size_t numDetectors { jd::num_floats_args<0, Args...>() };
@@ -34,7 +36,8 @@ public:
     std::unique_ptr<Algorithm> algorithm;
     
     Derived& asDerived () { return (*static_cast<Derived*>(this)); }
-//public:
+    
+public:
     
     Analyser(){
         static_assert(sizeof...(Args)==Derived::NUM_OUTPUTS,
@@ -75,30 +78,31 @@ public:
         return std::get<param> (outputs);
     }
 /* ----------------- Set Outputs ---------------*/
-    template<int I = 0, int Max = 0, class Coll>
-    typename std::enable_if<(I == Max),
-    void>::type setOutputs(Coll& ) {}
+    template<int I = 0, int Max = 0, class CollectionType>
+    typename std::enable_if<(I == Max), void>::type
+    setOutputs(CollectionType& ) {}
     
-    template<int I = 0, int Max = 0, class Coll>
-    typename std::enable_if<(I < Max),
-    void>::type setOutputs(Coll& coll)
+    template<int I = 0, int Max = 0, class CollectionType>
+    typename std::enable_if<(I < Max), void>::type
+    setOutputs(CollectionType& collection)
     {
-        algorithm->output(coll[I]).set(output<I>());
+        algorithm->output(collection[I]).set(output<I>());
 
-        setOutputs<I + 1, Max>(coll);
+        setOutputs<I + 1, Max>(collection);
     }
+
     void setOutputsFromAlgorithm() {
         auto names = algorithm->outputNames();
         setOutputs<0, Derived::NUM_OUTPUTS, decltype(names)>(names);
     }
-/*--------------------GATING--------------------*/
-    
 /* ----------------- Compute ------------------*/
 
-    auto outValues () -> std::vector<float>
+    std::vector<float> outValues ()
     {
         auto floatCollector = jd::tuple_element_collector<float,size_t>(numDetectors);
-        jd::for_each_of_type_in_tuple<float>(std::forward<decltype(outputs)>(outputs), floatCollector);
+        jd::for_each_of_type_in_tuple<float>(
+                                             std::forward<decltype(outputs)>(outputs),
+                                             floatCollector);
         return floatCollector.values;
     }
     
@@ -107,9 +111,7 @@ public:
         if (m_isEnabled)
             try {
                 algorithm->compute();
-            } catch (EssentiaException e) {
-                std::cout << e.what() << std::endl;
-            }
+            } catch (EssentiaException e) { }
     }
 };
 

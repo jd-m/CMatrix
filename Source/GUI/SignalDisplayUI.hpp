@@ -1,11 +1,3 @@
-//
-//  SignalDisplayUI.hpp
-//  jd_CMatrix
-//
-//  Created by Jaiden Muschett on 06/09/2017.
-//
-//
-
 #ifndef SignalDisplayUI_hpp
 #define SignalDisplayUI_hpp
 
@@ -23,12 +15,11 @@ public:
     void paint(Graphics& g) override;
     void resized() override;
 //================================================================
-    template<class C = std::vector<float>, class InputScalingFunc, class OutputScalingFunc>
-    void drawScaledRange(Graphics &g,
+    template<class CollectionType = std::vector<float>, class ScalingFunc>
+    void drawScaledRangeMarkers(Graphics &g,
                          String unit,
-                         C unscaledMarkers,
-                         InputScalingFunc scaleInput = [](float x){ return x;},
-                         OutputScalingFunc scaleOutput = [](float x){ return x;});
+                         CollectionType unscaledMarkers,
+                         ScalingFunc scaleFunc = [](float x){ return x;});
 //================================================================
     void setMode (ScalingMode newScalingMode);
     

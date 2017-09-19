@@ -3,8 +3,7 @@ HEADER_SEARCH_PATHS = ($inherited) "$(HOME)/libs/fftw3f/include" "$(HOME)/libs/e
 
 LIBRARY_SEARCH_PATHS = ($inherited) "$(HOME)/libs/essentia_/lib" "$(HOME)/libs/fftw3f/lib"
 
-//OTHER_LDFLAGS = ($inherited) "$(HOME)/libs/fftw3f/lib/libfftw3f.a" "$(HOME)/libs/essentia_/lib/libessentia.a"
-
+OTHER_LDFLAGS = ($inherited) -lfftw3f -lessentia
 
 
 CLANG_WARN_CXX0X_EXTENSIONS = YES

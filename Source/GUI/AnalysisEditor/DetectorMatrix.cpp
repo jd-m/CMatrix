@@ -19,19 +19,23 @@ detectorIndex(sourceDetectorIndex)
         auto newSetRequireWithinRangeButton = new ToggleButton ();
         addAndMakeVisible(newSetRequireWithinRangeButton);
         newSetRequireWithinRangeButton->addListener(this);
+        
         if (detectorIndex == i) {
             newSetRequireWithinRangeButton->setEnabled(false);
             newSetRequireWithinRangeButton->setToggleState(false, dontSendNotification);
         }
+        
         setRequireWithinRangeButtons.add(newSetRequireWithinRangeButton);
         
         auto newSetRequireOutsideRangeButton = new ToggleButton ();
         addAndMakeVisible(newSetRequireOutsideRangeButton);
         newSetRequireOutsideRangeButton->addListener(this);
+        
         if (detectorIndex == i) {
             newSetRequireOutsideRangeButton->setEnabled(false);
             newSetRequireOutsideRangeButton->setToggleState(false, dontSendNotification);
         }
+        
         setRequireOutsideRangeButtons.add(newSetRequireOutsideRangeButton);
     }
     //require nothing from self
@@ -49,6 +53,7 @@ void DetectorMatrix::paintOverChildren(juce::Graphics &g)
     
     g.drawRoundedRectangle(r.toFloat(), 5.f, 4);
     g.setColour(Colours::darkgrey.withAlpha(0.5f));
+    
     for (int i = 0; i < numColumns; i++)
     {
         if (i == detectorIndex){
@@ -56,7 +61,6 @@ void DetectorMatrix::paintOverChildren(juce::Graphics &g)
             g.fillRect(setRequireOutsideRangeButtons[i]->getBounds());
         }
     }
-    
     
     g.setColour(Colours::lightgrey);
     g.drawText("matrix", r.removeFromTop(25), Justification::centred);
@@ -73,11 +77,11 @@ void DetectorMatrix::resized()
     auto left = r.removeFromLeft(boxWidth);
     auto right = r.removeFromRight(boxWidth);
     
-    for (auto andButton : setRequireWithinRangeButtons)
-        andButton->setBounds(left.removeFromTop(boxHeight).reduced(5));
+    for (auto setRequireWithinRangeButton : setRequireWithinRangeButtons)
+        setRequireWithinRangeButton->setBounds(left.removeFromTop(boxHeight).reduced(5));
     
-    for (auto notButton : setRequireOutsideRangeButtons)
-        notButton->setBounds(right.removeFromTop(boxHeight).reduced(5));
+    for (auto setRequireOutsideRangeButton : setRequireOutsideRangeButtons)
+        setRequireOutsideRangeButton->setBounds(right.removeFromTop(boxHeight).reduced(5));
     
 }
 //===========================================================================

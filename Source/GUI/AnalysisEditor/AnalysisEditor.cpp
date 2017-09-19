@@ -2,11 +2,11 @@
 
 
 AnalysisEditor::AnalysisEditor(Jd_cmatrixAudioProcessor& p):
-processor(p)
+AudioProcessorEditor(&p), processor(p)
 {
     setOpaque(true);
     
-    for (int i = 0; i  < NUM_DETECTORS; i++)
+    for (int i = 0; i  < util::NUM_DETECTORS; i++)
     {
         auto w = waveformViewers[i];
         addAndMakeVisible(w);
@@ -29,8 +29,7 @@ processor(p)
     auto meterNames = {"amp", "pitch", "pitch confidence", "pitch salience", "inharmonicity"};
 
     //ANALYSIS METERS
-    
-    for (int i = 0; i < NUM_DETECTORS; i++)
+    for (int i = 0; i < util::NUM_DETECTORS; i++)
     {
         auto& d = processor.detectors[i];
         auto m = new AnalysisMeter(d);
@@ -176,8 +175,8 @@ processor(p)
             meters[i++]->setName(meterName);
     }
         
-    meters[PITCH]->thresholdSlider.setSkewFactor(0.125);
-    meters[LEVEL]->thresholdSlider.setSkewFactor(0.5, true);
+    meters[util::PITCH]->thresholdSlider.setSkewFactor(0.125);
+    meters[util::LEVEL]->thresholdSlider.setSkewFactor(0.5, true);
     
     
     addAndMakeVisible(matrixDetectorBox);
@@ -302,7 +301,7 @@ void AnalysisEditor::resized()
 void AnalysisEditor::positionDetectorDrawing(const Rectangle<int>& sectionBounds)
 {
     auto waveformViewerBounds = sectionBounds;
-    for (int i = 0; i  < NUM_DETECTORS; i++)
+    for (int i = 0; i  < util::NUM_DETECTORS; i++)
     {
         waveformViewers[i]->setBounds(waveformViewerBounds);
     }
@@ -329,7 +328,7 @@ void AnalysisEditor::positionDetectorSettings(const Rectangle<int>& sectionBound
     auto releaseTimeKnob = right.removeFromTop(75).reduced(2);
     auto smoothingSpeedKnob = right.removeFromTop(75).reduced(5).translated(0, 10);
     
-    for (int i = 0; i < NUM_DETECTORS; i++)
+    for (int i = 0; i < util::NUM_DETECTORS; i++)
     {
         attackTimeKnobs[i]->setBounds(attackTimeKnobBounds);
         releaseTimeKnobs[i]->setBounds(releaseTimeKnob);
@@ -358,7 +357,7 @@ void AnalysisEditor::positionMeterButtons(const Rectangle<int>& sectionBounds)
 
     auto meterIrOptionBounds = sectionBounds;
 
-    for (int i = 0; i < NUM_DETECTORS; i++)
+    for (int i = 0; i < util::NUM_DETECTORS; i++)
     {
         auto meterIrColumn = meterIrOptionBounds.removeFromLeft(100).reduced(5);
         setEnvelopeModeBoxes[i]->setBounds(meterIrColumn
@@ -478,7 +477,7 @@ void AnalysisEditor::sliderValueChanged(juce::Slider *slider)
     {
         int index = getIndexOfItemInArray(envelopeLevelKnobs, slider);
     
-        processor.convolutionEnvelopes[index].mul = jd::dbamp(slider->getValue());
+        processor.convolutionEnvelopes[index].setMul (jd::dbamp(slider->getValue()));
     }
     //WET
     if (slider == &wetGainDBSlider) {
@@ -497,15 +496,22 @@ void AnalysisEditor::sliderValueChanged(juce::Slider *slider)
 //=====================================================================
 void AnalysisEditor::buttonClicked(Button* changedButton)
 {
-    for (int meterIndex = 0; meterIndex < NUM_DETECTORS; meterIndex++)
+    for (int meterIndex = 0; meterIndex < util::NUM_DETECTORS; meterIndex++)
         if (changedButton == loadIRButtons[meterIndex])
         {
             FileChooser irFileChooser ("ChooseIR");
             if(irFileChooser.browseForFileToOpen())
             {
-                File irFile = irFileChooser.getResult();
+                ScopedLock lock { processor.convolverMutex };
                 
-                processor.convolvers[meterIndex]->loadIRFromFile(irFile);
+                File irFile = irFileChooser.getResult();
+                auto newConvolver = std::unique_ptr<MultiChannelConvolver> {};
+                newConvolver->setNumChannels (2);
+                newConvolver->prepareToPlay (processor.getSampleRate(), processor.getBlockSize());
+                newConvolver->loadIRFromFile (irFile);
+                
+                processor.convolvers.set (meterIndex, newConvolver.release());
+                
             }
         }
     
@@ -553,17 +559,17 @@ void AnalysisEditor::comboBoxChanged(juce::ComboBox *comboBox)
         deselectAllDetectionSettings();
         
         for (auto w :waveformViewers) {
-            if (activeWaveform == NUM_DETECTORS) {
+            if (activeWaveform == util::NUM_DETECTORS) {
                 w->setIsActive(true);
                 
             } else {
 
                 bool indexIsActive = (index == (activeWaveform));
                 
-                if (activeWaveform == LEVEL)
+                if (activeWaveform == util::LEVEL)
                     waveformDisplay.setMode(WaveformDisplay::LOG_AMP);
                 else if
-                    (activeWaveform == PITCH ) waveformDisplay.setMode(WaveformDisplay::LOG_FREQ);
+                    (activeWaveform == util::PITCH ) waveformDisplay.setMode(WaveformDisplay::LOG_FREQ);
                 else
                     waveformDisplay.setMode(WaveformDisplay::LIN);
                 
@@ -702,7 +708,7 @@ void AnalysisEditor::comboBoxChanged(juce::ComboBox *comboBox)
 //=====================================================================
 void AnalysisEditor::deselectAllEnvelopes()
 {
-    for (int i = 0; i < NUM_DETECTORS; i++)
+    for (int i = 0; i < util::NUM_DETECTORS; i++)
     {
         envelopeAttackTimeKnobs[i]->setVisible(false);
         envelopeAttackTimeKnobs[i]->setEnabled(false);
@@ -724,7 +730,7 @@ void AnalysisEditor::deselectAllEnvelopes()
 //=====================================================================
 void AnalysisEditor::deselectAllDetectionSettings()
 {
-    for (int i = 0; i < NUM_DETECTORS; i++)
+    for (int i = 0; i < util::NUM_DETECTORS; i++)
     {
         attackTimeKnobs[i]->setVisible(false);
         attackTimeKnobs[i]->setEnabled(false);

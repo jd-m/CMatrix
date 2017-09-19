@@ -11,7 +11,7 @@
 #include "../jd-lib/jdHeader.h"
 #include "../Settings.h"
 
-using RangeDetector = jd::GateDouble<float>;
+using RangeChecker = jd::GateDouble<float>;
 
 struct DetectorUnit {
     void init (float sampleRate, float controlRate, int blockSize)
@@ -137,7 +137,7 @@ struct DetectorUnit {
         funcToPerform(rangeChecker);
     }
     
-    RangeDetector rangeChecker;
+    RangeChecker rangeChecker;
     jd::RMSEnvelopeFollower<float> rmsEnvelope;
     jd::FloatConversionFunc<float> scaleInput = [](float x){return x;};
     jd::FloatConversionFunc<float> scaleOutput = [](float x){return x;};
@@ -149,31 +149,6 @@ struct DetectorUnit {
     bool shouldConvertInput {false};
     bool shouldConvertOutput {false};
     int gateCode {-1};
-};
-
-class DetectorChain {
-public:
-    
-    DetectorUnit& operator [] (int index)
-    {
-        return detectors [index];
-    }
-    
-    bool allEnabledDetectorsWithinRange()
-    {
-        bool allWithinSoFar {true};
-        int numEnabled {0};
-        for (const auto& d : detectors) {
-            if (d.isEnabled) {
-                allWithinSoFar = allWithinSoFar &&
-                d.isWithinRange();
-                numEnabled++;
-            }
-        }
-        return numEnabled > 0 ? allWithinSoFar : false;
-        
-    }
-    std::array<DetectorUnit, NUM_DETECTORS> detectors;
 };
 
 #endif /* essentia_analysis_gates_h */

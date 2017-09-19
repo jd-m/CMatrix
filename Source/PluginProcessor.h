@@ -11,9 +11,13 @@
 #include <list>
 #include "WaveformViewer.hpp"
 
+
 //==============================================================================
 /**
 */
+
+class AnalysisEditor;
+class DetectorMatrix;
 
 class Jd_cmatrixAudioProcessor  : public AudioProcessor
 {
@@ -57,9 +61,6 @@ public:
     
     using TriggerCondition = std::array<bool, 4>;
     
-    template<class Type>
-    using DetectorPropertyArray = std::array<Type, NUM_DETECTORS>;
-    
     enum EnvelopeMode {
         oneShot,
         sustain
@@ -80,28 +81,35 @@ public:
         withinRange,
         outsideRange,
     };
-
-    std::vector<float> mixedBuf;// for analysis
+    //==============================================================================
+private:
+    
+    friend class AnalysisEditor;
+    friend class DetectorMatrix;
+    
+    std::vector<float> mixedBuf;
     
     AudioSampleBuffer wetBuffer;
     AudioSampleBuffer multiplicationBuffer;
     
-    bool shouldUseSidechain {false};
+    bool shouldUseSidechain { false };
     AudioSampleBuffer sideChainBuffer;
     
     int targetControlBlocksize { 512 };
     int controlBlockSize { 0 };
     int loopsPerBlock { 8 };
-
-    RangeDetector gate;
+    int numChannels { 2 };
     
-    //DEV
     AnalyserChain analysisChain;
-    DetectorChain detectors;
+    std::array<DetectorUnit, util::NUM_DETECTORS> detectors;
     
     mutable CriticalSection convolverMutex;
     
-    OwnedArray<StereoConvolver> convolvers;
+    OwnedArray<MultiChannelConvolver> convolvers;
+    
+    template<class Type>
+    using DetectorPropertyArray = std::array<Type, util::NUM_DETECTORS>;
+    
     DetectorPropertyArray<jd::Envelope<float>> convolutionEnvelopes;
     DetectorPropertyArray<AudioSampleBuffer> convolutionEnvelopeBuffers;
     
@@ -116,24 +124,16 @@ public:
     DetectorPropertyArray<size_t> triggerCooldowns;
     DetectorPropertyArray<size_t> triggerCooldownTimes;
     
-    DetectorPropertyArray<std::array<RequiredDetectorState, NUM_DETECTORS>> requirementsOfOtherDetectors;
+    DetectorPropertyArray<std::array<RequiredDetectorState, util::NUM_DETECTORS>> requirementsOfOtherDetectors;
     
-    //FOR GUI
     OwnedArray<SignalDrawer> waveformViewers;
     
-    //levels
-    jd::AtomicSmoothedValue<float> dryGainDB {-6.f};
-    jd::AtomicSmoothedValue<float> wetGainDB {-6.f};
-    jd::AtomicSmoothedValue<float> inputGainDB { -6.f};
+    jd::AtomicSmoothedValue<float> dryGainDB {jd::dbamp(-6.f)};
+    jd::AtomicSmoothedValue<float> wetGainDB {jd::dbamp(-6.f)};
+    jd::AtomicSmoothedValue<float> inputGainDB {jd::dbamp(-6.f)};
     
     std::array<jd::OneZero<float>, 5> envSmoother;
     
-    //TEST SIGNALS
-    volatile double dbg_meter = 0.;
-    jd::Impulse<float> imp;
-    jd::Phasor<float> sin;
-    
-private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Jd_cmatrixAudioProcessor)
 };

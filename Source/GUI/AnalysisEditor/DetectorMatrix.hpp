@@ -19,7 +19,9 @@ public:
     void resized() override;
     //====================================================
     void buttonClicked(Button* changedButton) override;
-  //====================================================
+
+private:
+    
     template<class Container, class Type>
     int getIndexAtItem(Container& container, Type& item) {
         
@@ -35,13 +37,12 @@ public:
         setRequireOutsideRangeButtons[index]->getToggleState();
     }
     //====================================================
-//private:
     
-    int detectorIndex;
     using RequiredDetectorState = Jd_cmatrixAudioProcessor::RequiredDetectorState;
     
     Jd_cmatrixAudioProcessor& processor;
-
+    int detectorIndex;
+    
     int numColumns { 5 };
     
     OwnedArray<ToggleButton> setRequireWithinRangeButtons;

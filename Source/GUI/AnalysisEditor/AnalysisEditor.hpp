@@ -13,7 +13,7 @@
 #include "LookAndFeel.hpp"
 #include "DetectorMatrix.hpp"
 
-class AnalysisEditor : public Component,
+class AnalysisEditor : public AudioProcessorEditor,
 public Slider::Listener,
 public Button::Listener,
 public ComboBox::Listener,
@@ -21,9 +21,16 @@ public ChangeBroadcaster
 {
 public:
     AnalysisEditor(Jd_cmatrixAudioProcessor& p);
-//=====================================================================
+    //=====================================================================
     void paint(Graphics& g) override;
     void resized() override;
+    //=====================================================================
+    void sliderValueChanged(Slider* slider) override;
+    //=====================================================================
+    void comboBoxChanged(ComboBox *comboBox) override;
+    //=====================================================================
+    void buttonClicked(Button* button) override;
+private:
     //=================================================
     void positionDetectorDrawing(const Rectangle<int>& sectionBounds);
     void positionDetectorSettings(const Rectangle<int>& sectionBounds);
@@ -32,29 +39,22 @@ public:
     void positionMasterPanel(const Rectangle<int>& sectionBounds);
     void positionEditPanel(const Rectangle<int>& sectionBounds);
     //=====================================================================
-    void sliderValueChanged(Slider* slider) override;
-    //=====================================================================
-    void comboBoxChanged(ComboBox *comboBox) override;
-    //=====================================================================
-    void buttonClicked(Button* button) override;
-private:
     void setMeterTriggerMode(int meterIndex);
     //=====================================================================
-    void soloDetectorSignal();
-    //=====================================================================
+    void deselectAllEnvelopes();
+    void deselectAllDetectionSettings();
+    
+    friend class Jd_cmatrixAudioProcessor;
+
     template<class Container, class ItemType>
     int getIndexOfItemInArray (Container& container, ItemType& item)
     {
-        for (int index = 0; index < NUM_DETECTORS; index++) {
+        for (int index = 0; index < container.size(); index++) {
             if (item == container[index])
                 return index;
         }
         return -1;
-        
     }
-    void deselectAllEnvelopes();
-    void deselectAllDetectionSettings();
-    
     
     using GateCode = Jd_cmatrixAudioProcessor::GateCode;
     
@@ -62,9 +62,7 @@ private:
     OwnedArray<SignalDrawer>& waveformViewers { processor.waveformViewers };
     WaveformDisplay waveformDisplay;
 
-    int activeWaveform = LEVEL;
-    
-    int indexOfDetectorBeingEdited  {-1};
+    int activeWaveform = util::LEVEL;
     
     Array<Colour> detectorColours {
         Colours::darkorange,
@@ -130,7 +128,6 @@ private:
     Rectangle<int> masterControlBounds;
     Rectangle<int> envelopeParameterPanel;
     Rectangle<int> conditionPanel;
-    
     
 };
 
